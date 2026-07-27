@@ -1,0 +1,14 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout locale="en" title="Troubleshooting" description="Diagnose problems across configuration, authentication, capabilities, and service health." section="Operations">
+  <Fragment slot="toc"><a href="#baseline">Baseline</a><a href="#auth">Authentication</a><a href="#network">Network</a><a href="#install">Installation</a></Fragment>
+  <h2 id="baseline">Baseline diagnostics</h2><pre><code>emoera config list
+emoera auth status
+emoera capabilities
+emoera status
+emoera --debug whoami</code></pre><p>Debug output includes endpoints, stages, and error categories, but does not intentionally print tokens.</p>
+  <h2 id="auth">Authentication and authorization</h2><h3>401 / invalid token</h3><p>Run `emoera auth set-token` again and confirm the token is complete, active, and not expired.</p><h3>403 / forbidden</h3><p>Check token scopes, account organization access, and document visibility. The CLI never bypasses server-side isolation.</p>
+  <h2 id="network">Network and timeouts</h2><p>Start with `emoera status`. Increase the timeout for large reports:</p><pre><code>emoera --timeout 180s ask "Generate a complete comparison"</code></pre><p>If an old build reports EOF after a complete streaming answer, update to the latest release.</p>
+  <h2 id="install">Installation issues</h2><ul><li>Command not found: close and reopen the terminal.</li><li>macOS blocked package: allow it in Privacy &amp; Security.</li><li>Windows SmartScreen: verify SHA-256 before continuing.</li><li>No Linux keychain: use `EMOERA_API_TOKEN` on headless systems.</li></ul>
+</DocsLayout>

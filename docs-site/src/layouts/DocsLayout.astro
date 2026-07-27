@@ -1,5 +1,5 @@
 ---
-import { navGroups } from '../data/navigation';
+import { getNavGroups, type DocsLocale } from '../data/navigation';
 import SearchDialog from '../components/SearchDialog.astro';
 import '../styles/global.css';
 
@@ -7,46 +7,67 @@ interface Props {
   title: string;
   description: string;
   section?: string;
+  locale?: DocsLocale;
 }
 
-const { title, description, section = '文档' } = Astro.props;
+const { title, description, section, locale = 'zh' } = Astro.props;
+const isZh = locale === 'zh';
+const navGroups = getNavGroups(locale);
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+const localPath = currentPath.startsWith(base) ? currentPath.slice(base.length) || '/' : currentPath;
 const hrefFor = (href: string) => `${base}${href === '/' ? '/' : href}`;
+const counterpart = isZh
+  ? `/en${localPath === '/' ? '' : localPath}`
+  : localPath.replace(/^\/en(?=\/|$)/, '') || '/';
 const isActive = (href: string) => {
   const target = hrefFor(href).replace(/\/$/, '');
   return currentPath === target || (href === '/' && currentPath === base);
 };
+const copy = isZh ? {
+  section: section || '文档', search: '搜索', nav: '浏览文档', current: '当前版本', release: '查看 Release',
+  toc: '本页内容', issue: '发现错误或内容缺失？', submit: '提交 Issue', language: 'English',
+  brand: '面向开发者与 Agent 的知识入口'
+} : {
+  section: section || 'Documentation', search: 'Search', nav: 'Browse docs', current: 'Current version', release: 'View releases',
+  toc: 'On this page', issue: 'Found an error or missing detail?', submit: 'Open an issue', language: '中文',
+  brand: 'Knowledge access for developers and agents'
+};
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang={isZh ? 'zh-CN' : 'en'}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f7f3e8" />
+    <meta property="og:title" content={`${title} · Emoera CLI`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={`${base}/images/cli-terminal.svg`} />
     <title>{title} · Emoera CLI</title>
   </head>
-  <body>
+  <body data-locale={locale}>
     <header class="topbar">
-      <a class="brand" href={hrefFor('/')} aria-label="Emoera CLI 文档首页">
+      <a class="brand" href={hrefFor(isZh ? '/' : '/en')} aria-label="Emoera CLI docs home">
         <span class="brand-mark">E</span>
-        <span><b>Emoera CLI</b><small>Docs for humans and agents</small></span>
+        <span><b>Emoera CLI</b><small>{copy.brand}</small></span>
       </a>
-      <nav class="top-actions" aria-label="全局导航">
-        <button class="search-trigger" type="button" data-open-search>搜索 <kbd>⌘ K</kbd></button>
-        <a href={`${base}/llms.txt`}>llms.txt</a>
-        <a href="https://github.com/dijkstra402/emoera-RAG-CLI">GitHub</a>
+      <nav class="top-actions" aria-label="Global navigation">
+        <button class="search-trigger" type="button" data-open-search>{copy.search} <kbd>⌘ K</kbd></button>
+        <a class="language-switch" href={hrefFor(counterpart)}>{copy.language}</a>
+        <a href={`${base}${isZh ? '' : '/en'}/llms.txt`}>llms.txt</a>
+        <a class="github-link" href="https://github.com/dijkstra402/emoera-RAG-CLI">GitHub ↗</a>
       </nav>
     </header>
 
     <details class="mobile-nav">
-      <summary>浏览文档</summary>
+      <summary>{copy.nav}</summary>
       <div>
         {navGroups.flatMap(group => group.items).map(item => (
           <a class:list={{ active: isActive(item.href) }} href={hrefFor(item.href)}>{item.label}</a>
         ))}
+        <a href={hrefFor(counterpart)}>{copy.language}</a>
       </div>
     </details>
 
@@ -65,31 +86,31 @@ const isActive = (href: string) => {
           </section>
         ))}
         <div class="sidebar-note">
-          <span>当前版本</span><b>v0.1.1</b>
-          <a href="https://github.com/dijkstra402/emoera-RAG-CLI/releases">查看 Release</a>
+          <span>{copy.current}</span><b>v0.1.1</b>
+          <a href="https://github.com/dijkstra402/emoera-RAG-CLI/releases">{copy.release}</a>
         </div>
       </aside>
 
       <main class="document">
         <header class="doc-header">
-          <p>{section}</p>
+          <p>{copy.section}</p>
           <h1>{title}</h1>
           <div>{description}</div>
         </header>
         <article class="prose"><slot /></article>
         <footer class="doc-footer">
-          <span>发现错误或内容缺失？</span>
-          <a href="https://github.com/dijkstra402/emoera-RAG-CLI/issues/new">提交 Issue</a>
+          <span>{copy.issue}</span>
+          <a href="https://github.com/dijkstra402/emoera-RAG-CLI/issues/new">{copy.submit}</a>
         </footer>
       </main>
 
-      <aside class="toc" aria-label="本页目录">
-        <h2>本页内容</h2>
+      <aside class="toc" aria-label={copy.toc}>
+        <h2>{copy.toc}</h2>
         <slot name="toc" />
       </aside>
     </div>
 
-    <SearchDialog />
+    <SearchDialog locale={locale} />
     <script src={`${base}/site.js`}></script>
   </body>
 </html>

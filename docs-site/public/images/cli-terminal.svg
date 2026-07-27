@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Emoera Agent CLI terminal</title>
+  <desc id="desc">A terminal showing a knowledge base question moving through retrieval and answer generation.</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="140%"><feDropShadow dx="18" dy="20" stdDeviation="0" flood-color="#1c1a17" flood-opacity=".14"/></filter>
+    <pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse"><path d="M56 0H0V56" fill="none" stroke="#d9d1bf" stroke-width="1" opacity=".55"/></pattern>
+  </defs>
+  <rect width="1200" height="720" fill="#f7f3e8"/>
+  <rect width="1200" height="720" fill="url(#grid)"/>
+  <g filter="url(#shadow)">
+    <rect x="92" y="72" width="1016" height="560" fill="#181a20" stroke="#1c1a17" stroke-width="3"/>
+    <path d="M92 132h1016" stroke="#3a3d45" stroke-width="2"/>
+    <circle cx="130" cy="102" r="9" fill="#d9342b"/><circle cx="160" cy="102" r="9" fill="#d9a52e"/><circle cx="190" cy="102" r="9" fill="#38a06b"/>
+    <text x="600" y="108" text-anchor="middle" fill="#aaa59a" font-family="ui-monospace, monospace" font-size="16">emoera — knowledge terminal</text>
+    <text x="140" y="184" fill="#ef6158" font-family="ui-monospace, monospace" font-size="21">$</text>
+    <text x="174" y="184" fill="#f4efe4" font-family="ui-monospace, monospace" font-size="21">emoera ask "Summarize our deployment policy"</text>
+    <g font-family="ui-monospace, monospace" font-size="18">
+      <text x="140" y="244" fill="#ef6158">◆</text><text x="178" y="244" fill="#c7c2b8">rewrite query</text>
+      <text x="140" y="284" fill="#ef6158">◆</text><text x="178" y="284" fill="#c7c2b8">retrieve authorized knowledge</text>
+      <text x="140" y="324" fill="#ef6158">◆</text><text x="178" y="324" fill="#c7c2b8">rerank relevant chunks</text>
+      <text x="140" y="364" fill="#ef6158">◆</text><text x="178" y="364" fill="#c7c2b8">generate grounded answer</text>
+    </g>
+    <text x="140" y="430" fill="#ffffff" font-family="ui-monospace, monospace" font-size="20" font-weight="700">ANSWER</text>
+    <text x="140" y="472" fill="#e4dfd4" font-family="ui-monospace, monospace" font-size="18">Run validation, configuration checks, and health probes</text>
+    <text x="140" y="504" fill="#e4dfd4" font-family="ui-monospace, monospace" font-size="18">before activating the release. Roll back on failure.</text>
+    <path d="M140 548h920" stroke="#3a3d45"/>
+    <text x="140" y="584" fill="#89857c" font-family="ui-monospace, monospace" font-size="15">request_id req_7e4a…</text>
+    <text x="878" y="584" fill="#ef6158" font-family="ui-monospace, monospace" font-size="15">scope rag:ask</text>
+  </g>
+</svg>

@@ -1,0 +1,13 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout locale="en" title="Install and update" description="Native packages for macOS, Linux, and Windows, plus portable archives and Go installation." section="Getting started">
+  <Fragment slot="toc"><a href="#choose">Choose a package</a><a href="#macos">macOS</a><a href="#linux">Linux</a><a href="#windows">Windows</a><a href="#portable">Portable and Go</a></Fragment>
+  <h2 id="choose">Choose a package</h2>
+  <table><thead><tr><th>Platform</th><th>Recommended</th><th>Architecture</th></tr></thead><tbody><tr><td>macOS</td><td>PKG</td><td>Apple Silicon / Intel</td></tr><tr><td>Debian / Ubuntu</td><td>DEB</td><td>amd64 / arm64</td></tr><tr><td>Fedora / RHEL / Rocky</td><td>RPM</td><td>amd64 / arm64</td></tr><tr><td>Windows</td><td>Setup EXE</td><td>amd64</td></tr></tbody></table>
+  <p>Download every artifact from <a href="https://github.com/dijkstra402/emoera-RAG-CLI/releases/latest">GitHub Releases</a>. Releases include SHA-256 checksums, an SBOM, and build provenance.</p>
+  <h2 id="macos">macOS</h2><p>Download the `.pkg` matching your processor and open it. Then start a new terminal:</p><pre><code>emoera --version</code></pre><p>Community builds are not currently signed with an Apple Developer ID. If Gatekeeper blocks the package, allow it under System Settings → Privacy &amp; Security.</p>
+  <h2 id="linux">Linux</h2><h3>Debian / Ubuntu</h3><pre><code>sudo apt install ./emoera-cli_*_linux_amd64.deb</code></pre><h3>Fedora / RHEL / Rocky</h3><pre><code>sudo dnf install ./emoera-cli_*_linux_amd64.rpm</code></pre>
+  <h2 id="windows">Windows</h2><p>Run `emoera-cli_*_windows_amd64-setup.exe`. The installer updates PATH for the current user. Reopen PowerShell and run:</p><pre><code>emoera --version</code></pre>
+  <h2 id="portable">Portable archive and Go</h2><p>Extract the archive and add its directory to PATH, or install with Go 1.22+:</p><pre><code>go install github.com/dijkstra402/emoera-RAG-CLI/cmd/emoera@latest</code></pre>
+</DocsLayout>

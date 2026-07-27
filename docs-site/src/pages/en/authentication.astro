@@ -1,0 +1,14 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout locale="en" title="Authentication and security" description="Protect Agent API tokens with minimum scopes, short lifetimes, and operating-system credential stores." section="Security">
+  <Fragment slot="toc"><a href="#token">Token lifecycle</a><a href="#storage">Credential storage</a><a href="#scope">Scopes</a><a href="#headless">Headless systems</a></Fragment>
+  <h2 id="token">Token lifecycle</h2><p>Tokens are shown once. Separate tokens by workload, set an expiration, and revoke them immediately when a job ends or exposure is suspected.</p><pre><code>emoera auth set-token
+emoera auth status
+emoera auth logout</code></pre>
+  <h2 id="storage">Credential storage</h2><table><thead><tr><th>System</th><th>Default store</th></tr></thead><tbody><tr><td>macOS</td><td>Keychain</td></tr><tr><td>Windows</td><td>Credential Manager</td></tr><tr><td>Linux Desktop</td><td>Secret Service</td></tr></tbody></table><p>Profile files contain endpoints and non-sensitive preferences, never plaintext tokens.</p>
+  <h2 id="scope">Least-privilege scopes</h2><p>Grant only what a workload needs. A search-only agent should not receive upload or cancellation scopes. Server-side organization and document permissions still apply.</p>
+  <h2 id="headless">CI, containers, and servers</h2><p>Inject secrets from the platform's secret manager. Never bake them into images or scripts:</p><pre><code>export EMOERA_ENDPOINT="https://rag.emoera.cn"
+export EMOERA_API_TOKEN="em_sk_xxx"
+emoera whoami --json</code></pre>
+</DocsLayout>
