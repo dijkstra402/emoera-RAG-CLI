@@ -1,0 +1,22 @@
+---
+import { navGroups } from '../data/navigation';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const hrefFor = (href: string) => `${base}${href === '/' ? '/' : href}`;
+---
+
+<dialog class="search-dialog" data-search-dialog>
+  <form method="dialog" class="search-panel">
+    <header>
+      <b>搜索文档</b>
+      <button value="cancel" aria-label="关闭搜索">关闭</button>
+    </header>
+    <input type="search" placeholder="输入安装、Token、JSON…" autocomplete="off" data-search-input />
+    <div class="search-results" data-search-results>
+      {navGroups.flatMap(group => group.items).map(item => (
+        <a href={hrefFor(item.href)} data-search-item={`${item.label} ${item.description}`.toLowerCase()}>
+          <b>{item.label}</b><span>{item.description}</span>
+        </a>
+      ))}
+    </div>
+  </form>
+</dialog>

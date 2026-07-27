@@ -1,0 +1,38 @@
+---
+import DocsLayout from '../layouts/DocsLayout.astro';
+
+const base = import.meta.env.BASE_URL;
+const docsHref = (path: string) => `${base.replace(/\/$/, '')}/${path}`;
+---
+
+<DocsLayout title="五分钟快速开始" description="创建最小权限 Token，完成认证检查，并发起第一个知识库问答。" section="Getting started">
+  <Fragment slot="toc">
+    <a href="#token">创建 Token</a>
+    <a href="#configure">初始化配置</a>
+    <a href="#verify">验证服务</a>
+    <a href="#ask">开始问答</a>
+  </Fragment>
+
+  <h2 id="token">1. 创建 Token</h2>
+  <p>登录 E时代 RAG 知识库，进入“个人中心 → Agent API”，填写名称、Scope 和过期时间。Token 只会完整显示一次，请立即复制。</p>
+
+  <h2 id="configure">2. 初始化配置</h2>
+  <pre><code>emoera config init
+emoera auth set-token</code></pre>
+  <p>`auth set-token` 会隐藏输入并将 Token 保存到系统凭据存储。自建服务可修改地址：</p>
+  <pre><code>emoera config set endpoint https://your-rag.example.com</code></pre>
+
+  <h2 id="verify">3. 验证身份与能力</h2>
+  <pre><code>emoera auth status
+emoera whoami
+emoera capabilities</code></pre>
+  <p>如果这里返回 401，请重新设置 Token；返回 403 通常表示 Scope 不足。</p>
+
+  <h2 id="ask">4. 开始问答</h2>
+  <pre><code>emoera ask "总结知识库中的部署规范"</code></pre>
+  <p>你会看到理解问题、检索、重排和生成四个阶段。需要给程序消费时改用 `--json`。</p>
+  <div class="next-step">
+    <div><b>下一步</b><span>了解 Token Scope、Keychain 与环境变量。</span></div>
+    <a href={docsHref('authentication')}>认证与安全</a>
+  </div>
+</DocsLayout>

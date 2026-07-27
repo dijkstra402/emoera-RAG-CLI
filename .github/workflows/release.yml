@@ -95,9 +95,104 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  macos-installer:
+    name: Build macOS ${{ matrix.goarch }} installer
+    needs: verify
+    runs-on: macos-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+          cache: true
+      - name: Build PKG installer
+        shell: bash
+        env:
+          BUILD_VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+        run: bash scripts/build-macos-pkg.sh "$BUILD_VERSION" "${{ matrix.goarch }}" release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-macos-pkg-${{ matrix.goarch }}
+          path: release/emoera-cli_*.pkg
+          if-no-files-found: error
+          retention-days: 7
+
+  linux-installer:
+    name: Build Linux ${{ matrix.goarch }} packages
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+          cache: true
+      - name: Install RPM packaging tools
+        run: sudo apt-get update && sudo apt-get install -y rpm
+      - name: Build DEB and RPM installers
+        shell: bash
+        env:
+          BUILD_VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+        run: bash scripts/build-linux-packages.sh "$BUILD_VERSION" "${{ matrix.goarch }}" release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-linux-packages-${{ matrix.goarch }}
+          path: |
+            release/emoera-cli_*.deb
+            release/emoera-cli_*.rpm
+          if-no-files-found: error
+          retention-days: 7
+
+  windows-installer:
+    name: Build Windows setup
+    needs: verify
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+          cache: true
+      - name: Install NSIS
+        shell: pwsh
+        run: choco install nsis --no-progress -y
+      - name: Build setup executable
+        shell: pwsh
+        env:
+          BUILD_VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+        run: |
+          $version = $env:BUILD_VERSION.TrimStart('v')
+          New-Item -ItemType Directory -Force -Path release | Out-Null
+          $binary = (Resolve-Path release).Path + '\emoera.exe'
+          $output = (Resolve-Path release).Path + "\emoera-cli_${version}_windows_amd64-setup.exe"
+          $env:CGO_ENABLED = '0'
+          $env:GOOS = 'windows'
+          $env:GOARCH = 'amd64'
+          go build -trimpath -ldflags "-s -w -X github.com/dijkstra402/emoera-RAG-CLI/cmd.version=$version" -o $binary .
+          $makensis = (Get-Command makensis.exe -ErrorAction SilentlyContinue).Source
+          if (-not $makensis) { $makensis = "${env:ProgramFiles(x86)}\NSIS\makensis.exe" }
+          & $makensis "/DVERSION=$version" "/DBINARY_PATH=$binary" "/DOUTPUT_FILE=$output" scripts/windows-installer.nsi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-windows-setup-amd64
+          path: release/emoera-cli_*-setup.exe
+          if-no-files-found: error
+          retention-days: 7
+
   publish:
     name: Sign and publish artifacts
-    needs: build
+    needs: [build, macos-installer, linux-installer, windows-installer]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -119,7 +214,9 @@ jobs:
         run: |
           set -euo pipefail
           cd release
-          sha256sum emoera-cli_*.tar.gz emoera-cli_*.zip emoera-cli.cdx.json > SHA256SUMS
+          sha256sum emoera-cli_*.tar.gz emoera-cli_*.zip emoera-cli_*.pkg \
+            emoera-cli_*.deb emoera-cli_*.rpm emoera-cli_*-setup.exe \
+            emoera-cli.cdx.json > SHA256SUMS
       - name: Install cosign
         uses: sigstore/cosign-installer@v3
       - name: Sign checksum manifest
@@ -131,6 +228,10 @@ jobs:
           subject-path: |
             release/emoera-cli_*.tar.gz
             release/emoera-cli_*.zip
+            release/emoera-cli_*.pkg
+            release/emoera-cli_*.deb
+            release/emoera-cli_*.rpm
+            release/emoera-cli_*-setup.exe
       - uses: actions/upload-artifact@v4
         with:
           name: emoera-cli-release

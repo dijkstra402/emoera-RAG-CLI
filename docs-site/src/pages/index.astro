@@ -1,0 +1,37 @@
+---
+import DocsLayout from '../layouts/DocsLayout.astro';
+
+const base = import.meta.env.BASE_URL;
+const docsHref = (path: string) => `${base.replace(/\/$/, '')}/${path}`;
+---
+
+<DocsLayout title="让知识库进入终端" description="Emoera Agent CLI 为开发者和 AI Agent 提供安全、可组合、可审计的知识库访问方式。" section="Overview">
+  <Fragment slot="toc">
+    <a href="#why">为什么使用 CLI</a>
+    <a href="#capabilities">核心能力</a>
+    <a href="#first-command">第一个命令</a>
+  </Fragment>
+
+  <h2 id="why">为什么使用 CLI</h2>
+  <p>网页适合探索，命令行适合进入工作流。你可以在终端检索文档、发起 RAG 问答，也可以把同一套能力交给脚本、CI 和 Agent 调用。</p>
+  <blockquote>一个 Token 对应一组明确 Scope；每次请求都有可追踪的请求 ID，并遵守平台配额与组织权限。</blockquote>
+
+  <h2 id="capabilities">核心能力</h2>
+  <div class="feature-ledger">
+    <div><b>流式知识问答</b><span>实时展示检索、重排和生成阶段。</span></div>
+    <div><b>权限内检索</b><span>只返回当前 Token 可访问的组织与文档。</span></div>
+    <div><b>结构化输出</b><span>table、JSON 与 JSONL 适配人和 Agent。</span></div>
+    <div><b>系统凭据存储</b><span>Token 默认进入 Keychain，而不是明文配置。</span></div>
+    <div><b>文档自动化</b><span>上传、解析状态与文件详情可脚本化。</span></div>
+    <div><b>多环境 Profile</b><span>开发、预发和生产配置彼此隔离。</span></div>
+  </div>
+
+  <h2 id="first-command">第一个命令</h2>
+  <pre><code>emoera config init
+emoera auth set-token
+emoera ask "总结知识库中的部署规范"</code></pre>
+  <div class="next-step">
+    <div><b>准备安装？</b><span>选择适合 macOS、Linux 或 Windows 的安装包。</span></div>
+    <a href={docsHref('install')}>查看安装指南</a>
+  </div>
+</DocsLayout>

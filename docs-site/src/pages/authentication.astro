@@ -1,0 +1,35 @@
+---
+import DocsLayout from '../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="认证与安全" description="用最小 Scope、短有效期和系统凭据存储保护 Agent API Token。" section="Security">
+  <Fragment slot="toc">
+    <a href="#token">Token 生命周期</a>
+    <a href="#storage">凭据存储</a>
+    <a href="#scope">Scope</a>
+    <a href="#headless">无桌面环境</a>
+  </Fragment>
+
+  <h2 id="token">Token 生命周期</h2>
+  <p>Token 只在创建时显示一次。建议按用途拆分 Token、设置过期时间，并在任务结束或疑似泄露时立即撤销。</p>
+  <pre><code>emoera auth set-token
+emoera auth status
+emoera auth logout</code></pre>
+
+  <h2 id="storage">系统凭据存储</h2>
+  <table><thead><tr><th>系统</th><th>默认存储</th></tr></thead><tbody>
+    <tr><td>macOS</td><td>Keychain</td></tr>
+    <tr><td>Windows</td><td>Credential Manager</td></tr>
+    <tr><td>Linux Desktop</td><td>Secret Service</td></tr>
+  </tbody></table>
+  <p>Profile 配置文件只保存服务地址和非敏感偏好，不保存明文 Token。</p>
+
+  <h2 id="scope">最小权限 Scope</h2>
+  <p>只勾选当前任务需要的能力。例如只做检索的 Agent 不应获得文档上传或会话取消权限。组织和文档可见性仍由服务端权限系统控制。</p>
+
+  <h2 id="headless">CI、容器与服务器</h2>
+  <p>无 Keychain 时通过秘密变量注入，不要把 Token 写进镜像、脚本或仓库：</p>
+  <pre><code>export EMOERA_ENDPOINT="https://rag.emoera.cn"
+export EMOERA_API_TOKEN="em_sk_xxx"
+emoera whoami --json</code></pre>
+</DocsLayout>

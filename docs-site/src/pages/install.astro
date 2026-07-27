@@ -1,0 +1,41 @@
+---
+import DocsLayout from '../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="安装与升级" description="三大平台均提供原生安装包，同时保留压缩包和 Go 安装方式。" section="Getting started">
+  <Fragment slot="toc">
+    <a href="#choose">选择安装包</a>
+    <a href="#macos">macOS</a>
+    <a href="#linux">Linux</a>
+    <a href="#windows">Windows</a>
+    <a href="#portable">免安装与 Go</a>
+  </Fragment>
+
+  <h2 id="choose">选择安装包</h2>
+  <table><thead><tr><th>平台</th><th>推荐格式</th><th>架构</th></tr></thead><tbody>
+    <tr><td>macOS</td><td>PKG</td><td>Apple Silicon / Intel</td></tr>
+    <tr><td>Debian / Ubuntu</td><td>DEB</td><td>amd64 / arm64</td></tr>
+    <tr><td>Fedora / RHEL / Rocky</td><td>RPM</td><td>amd64 / arm64</td></tr>
+    <tr><td>Windows</td><td>Setup EXE</td><td>amd64</td></tr>
+  </tbody></table>
+  <p>所有文件均发布在 <a href="https://github.com/dijkstra402/emoera-RAG-CLI/releases/latest">GitHub Releases</a>，并附带 SHA-256、SBOM 和构建来源证明。</p>
+
+  <h2 id="macos">macOS</h2>
+  <p>下载对应芯片的 `.pkg` 并双击安装。安装完成后打开一个新终端：</p>
+  <pre><code>emoera --version</code></pre>
+  <p>社区安装包当前未使用 Apple Developer ID 签名。若系统阻止打开，可在“系统设置 → 隐私与安全性”选择“仍要打开”。</p>
+
+  <h2 id="linux">Linux</h2>
+  <h3>Debian / Ubuntu</h3>
+  <pre><code>sudo apt install ./emoera-cli_*_linux_amd64.deb</code></pre>
+  <h3>Fedora / RHEL / Rocky</h3>
+  <pre><code>sudo dnf install ./emoera-cli_*_linux_amd64.rpm</code></pre>
+
+  <h2 id="windows">Windows</h2>
+  <p>运行 `emoera-cli_*_windows_amd64-setup.exe`。安装器会安装到当前用户目录并更新 PATH；完成后重新打开 PowerShell。</p>
+  <pre><code>emoera --version</code></pre>
+
+  <h2 id="portable">免安装与 Go</h2>
+  <p>压缩包适合没有安装权限的环境。解压后把二进制所在目录加入 PATH。安装了 Go 1.22+ 时也可以：</p>
+  <pre><code>go install github.com/dijkstra402/emoera-RAG-CLI/cmd/emoera@latest</code></pre>
+</DocsLayout>

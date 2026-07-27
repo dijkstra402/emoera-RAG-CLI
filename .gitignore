@@ -5,3 +5,6 @@
 .DS_Store
 .idea/
 .vscode/
+docs-site/node_modules/
+docs-site/dist/
+docs-site/.astro/

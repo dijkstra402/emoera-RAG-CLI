@@ -1,0 +1,38 @@
+---
+import DocsLayout from '../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Agent 自动化" description="让 CLI 成为稳定的工具边界：结构化输出、幂等请求、明确退出码和秘密注入。" section="Agent integration">
+  <Fragment slot="toc">
+    <a href="#output">结构化输出</a>
+    <a href="#idempotency">请求幂等</a>
+    <a href="#exit-codes">退出码</a>
+    <a href="#ci">CI 示例</a>
+  </Fragment>
+
+  <h2 id="output">结构化输出</h2>
+  <p>交互终端默认使用易读格式；Agent 和脚本应显式选择 JSON 或 JSONL。</p>
+  <pre><code>emoera search "发布回滚" --json
+emoera ask "逐条输出证据" --jsonl --no-color</code></pre>
+
+  <h2 id="idempotency">请求幂等与追踪</h2>
+  <p>重试可能发生在网络、Runner 或 Agent 层。对有副作用或耗时的命令传入稳定的请求 ID：</p>
+  <pre><code>emoera --request-id "audit-20260727-001" \
+  ask "检查发布风险" --json</code></pre>
+
+  <h2 id="exit-codes">退出码</h2>
+  <table><thead><tr><th>码</th><th>含义</th><th>建议动作</th></tr></thead><tbody>
+    <tr><td>0</td><td>成功</td><td>读取结果</td></tr>
+    <tr><td>2</td><td>参数或配置错误</td><td>修正调用，不要重试</td></tr>
+    <tr><td>3</td><td>认证失败</td><td>轮换 Token</td></tr>
+    <tr><td>4</td><td>权限不足</td><td>检查 Scope</td></tr>
+    <tr><td>6</td><td>配额或限流</td><td>退避或等待恢复</td></tr>
+    <tr><td>7</td><td>网络或服务异常</td><td>指数退避重试</td></tr>
+  </tbody></table>
+
+  <h2 id="ci">CI 示例</h2>
+  <pre><code>export EMOERA_API_TOKEN="$EMOERA_API_TOKEN"
+result="$(emoera ask "总结变更风险" --json --no-color)"
+printf '%s\n' "$result" &gt; rag-audit.json</code></pre>
+  <p>Token 应来自 CI 的 Secret 管理功能；日志中不得回显变量值。</p>
+</DocsLayout>
