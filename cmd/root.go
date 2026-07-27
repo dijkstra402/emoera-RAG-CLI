@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/dijkstra402/emoera-RAG-CLI/internal/api"
@@ -13,8 +15,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// version 会在 Release 构建时通过 -ldflags 注入；本地源码构建使用当前稳定版本。
-var version = "0.1.0"
+// version 会在 Release 构建时通过 -ldflags 注入；go install 构建则读取模块版本。
+var version = "dev"
+
+func resolvedVersion() string {
+	if version != "" && version != "dev" {
+		return strings.TrimPrefix(version, "v")
+	}
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
+		return strings.TrimPrefix(info.Main.Version, "v")
+	}
+	return "dev"
+}
 
 type application struct {
 	profile   string
@@ -40,10 +52,11 @@ func Execute() error {
 
 func newRootCommand(store auth.Store) *cobra.Command {
 	app := &application{store: store}
+	buildVersion := resolvedVersion()
 	root := &cobra.Command{
 		Use:           "emoera",
 		Short:         "E时代 RAG 知识库 Agent CLI",
-		Version:       version,
+		Version:       buildVersion,
 		SilenceErrors: true,
 		SilenceUsage:  true,
 	}
@@ -138,7 +151,7 @@ func (a *application) client() (*api.Client, config.Runtime, error) {
 	if err != nil {
 		return nil, config.Runtime{}, err
 	}
-	client, err := api.New(runtime.Endpoint, runtime.Token, "emoera-cli/"+version, runtime.Timeout)
+	client, err := api.New(runtime.Endpoint, runtime.Token, "emoera-cli/"+resolvedVersion(), runtime.Timeout)
 	return client, runtime, err
 }
 

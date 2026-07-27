@@ -26,6 +26,16 @@ func TestInvalidFlagUsesArgumentsExitCode(t *testing.T) {
 	}
 }
 
+func TestResolvedVersionPrefersInjectedReleaseVersion(t *testing.T) {
+	original := version
+	version = "v1.2.3"
+	t.Cleanup(func() { version = original })
+
+	if got := resolvedVersion(); got != "1.2.3" {
+		t.Fatalf("expected normalized release version, got %q", got)
+	}
+}
+
 type memoryStore struct{}
 
 func (memoryStore) Get(string) (string, error) { return "", nil }

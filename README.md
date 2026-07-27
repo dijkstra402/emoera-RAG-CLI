@@ -35,7 +35,7 @@ emoera --version
 也可以使用 Go 直接安装最新源码：
 
 ```bash
-go install github.com/dijkstra402/emoera-RAG-CLI@latest
+go install github.com/dijkstra402/emoera-RAG-CLI/cmd/emoera@latest
 ```
 
 ## 快速开始
