@@ -137,8 +137,8 @@ jobs:
         with:
           go-version: '1.22.x'
           cache: true
-      - name: Install RPM packaging tools
-        run: sudo apt-get update && sudo apt-get install -y rpm
+      - name: Install cross-platform Linux packager
+        run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.41.2
       - name: Build DEB and RPM installers
         shell: bash
         env:
