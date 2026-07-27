@@ -55,7 +55,7 @@ emoera whoami
 emoera capabilities
 
 # 发起知识库问答
-emoera ask "孙梦磊是谁"
+emoera ask "介绍一下知识库中的主要内容"
 ```
 
 自建部署可修改服务地址：
