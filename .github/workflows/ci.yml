@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cli-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+          cache: true
+      - name: Verify formatting
+        shell: bash
+        run: test -z "$(gofmt -l $(find . -name '*.go' -type f))"
+      - name: Test
+        run: go test -race ./...
+      - name: Vet
+        run: go vet ./...
+      - name: Build
+        run: go build -trimpath ./...

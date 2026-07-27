@@ -1,0 +1,146 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version for a build-only release candidate, for example 0.1.0-rc.1
+        required: true
+        default: 0.1.0-rc.1
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: cli-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify CLI
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+          cache: true
+      - run: test -z "$(gofmt -l $(find . -name '*.go' -type f))"
+      - run: go test -race ./...
+      - run: go vet ./...
+
+  build:
+    name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            format: tar.gz
+          - goos: linux
+            goarch: arm64
+            format: tar.gz
+          - goos: darwin
+            goarch: amd64
+            format: tar.gz
+          - goos: darwin
+            goarch: arm64
+            format: tar.gz
+          - goos: windows
+            goarch: amd64
+            format: zip
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
+          cache: true
+      - name: Build and archive
+        shell: bash
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          BUILD_VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+        run: |
+          set -euo pipefail
+          version="${BUILD_VERSION#v}"
+          target="emoera-cli_${version}_${GOOS}_${GOARCH}"
+          mkdir -p "release/$target"
+          binary="emoera"
+          if [ "$GOOS" = windows ]; then binary="emoera.exe"; fi
+          CGO_ENABLED=0 go build -trimpath \
+            -ldflags "-s -w -X github.com/dijkstra402/emoera-RAG-CLI/cmd.version=$version" \
+            -o "release/$target/$binary" .
+          cp README.md LICENSE "release/$target/"
+          if [ "${{ matrix.format }}" = zip ]; then
+            (cd release && zip -qr "$target.zip" "$target")
+          else
+            tar -C release -czf "release/$target.tar.gz" "$target"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: release/emoera-cli_*.${{ matrix.format }}
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Sign and publish artifacts
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cli-*
+          path: release
+          merge-multiple: true
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: release
+          format: cyclonedx-json
+          output-file: release/emoera-cli.cdx.json
+          upload-artifact: false
+      - name: Generate checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release
+          sha256sum emoera-cli_*.tar.gz emoera-cli_*.zip emoera-cli.cdx.json > SHA256SUMS
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+      - name: Sign checksum manifest
+        shell: bash
+        run: cosign sign-blob --yes --bundle release/SHA256SUMS.sigstore.json release/SHA256SUMS
+      - name: Attest archives
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            release/emoera-cli_*.tar.gz
+            release/emoera-cli_*.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: emoera-cli-release
+          path: release
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish GitHub Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: ${{ contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
+          generate_release_notes: true
+          files: release/*
