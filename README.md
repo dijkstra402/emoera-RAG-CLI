@@ -20,6 +20,22 @@
 
 ## 安装
 
+### 一行命令安装（推荐）
+
+macOS / Linux：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dijkstra402/emoera-RAG-CLI/main/install.sh | sh
+```
+
+Windows PowerShell：
+
+```powershell
+irm https://raw.githubusercontent.com/dijkstra402/emoera-RAG-CLI/main/install.ps1 | iex
+```
+
+安装脚本会自动识别系统和 CPU，下载最新 Release，校验 `SHA256SUMS`，并安装到当前用户目录。也可以继续使用下面的图形安装包。
+
 从 [GitHub Releases](https://github.com/dijkstra402/emoera-RAG-CLI/releases/latest) 下载与你的系统匹配的压缩包：
 
 | 系统 | 推荐安装包 | 免安装包 |

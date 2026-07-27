@@ -12,6 +12,12 @@ import DocsLayout from '../layouts/DocsLayout.astro';
   </Fragment>
 
   <h2 id="choose">选择安装包</h2>
+  <h3>一行命令安装（推荐）</h3>
+  <p>脚本会自动识别系统和处理器、下载最新 Release，并在安装前校验 SHA-256。</p>
+  <h4>macOS / Linux</h4>
+  <pre><code>curl -fsSL https://raw.githubusercontent.com/dijkstra402/emoera-RAG-CLI/main/install.sh | sh</code></pre>
+  <h4>Windows PowerShell</h4>
+  <pre><code>irm https://raw.githubusercontent.com/dijkstra402/emoera-RAG-CLI/main/install.ps1 | iex</code></pre>
   <table><thead><tr><th>平台</th><th>推荐格式</th><th>架构</th></tr></thead><tbody>
     <tr><td>macOS</td><td>PKG</td><td>Apple Silicon / Intel</td></tr>
     <tr><td>Debian / Ubuntu</td><td>DEB</td><td>amd64 / arm64</td></tr>
