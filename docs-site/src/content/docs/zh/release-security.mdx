@@ -1,0 +1,29 @@
+---
+title: Release 与供应链安全
+description: 校验安装包、SBOM、构建来源和社区签名状态。
+audience: human
+sidebar:
+  order: 7
+  label: Release 与安全
+---
+
+每个 [GitHub Release](https://github.com/dijkstra402/emoera-RAG-CLI/releases/latest) 提供跨平台二进制、安装包、`SHA256SUMS`、CycloneDX SBOM、Sigstore bundle 与 GitHub 构建来源证明。
+
+## 校验 SHA-256
+
+```bash
+# Linux
+sha256sum -c SHA256SUMS --ignore-missing
+
+# macOS
+shasum -a 256 -c SHA256SUMS
+```
+
+## 安全边界
+
+- 只从官方仓库的 Release 下载。
+- 一键安装器在替换本地二进制前校验摘要。
+- Token 默认进入系统凭据库，不写入普通配置。
+- 安全漏洞请按仓库 [SECURITY.md](https://github.com/dijkstra402/emoera-RAG-CLI/blob/main/SECURITY.md) 私下报告。
+
+<Aside type="note" title="版本与文档">页面不硬编码“最新版本号”。安装器和“Latest Release”入口始终解析 GitHub 最新正式 Release，发版后无需手工修改下载链接。</Aside>

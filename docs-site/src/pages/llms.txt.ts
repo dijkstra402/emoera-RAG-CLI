@@ -1,36 +1,51 @@
-export function GET() {
-  const body = `# Emoera Agent CLI
+// Root /llms.txt — sectioned index for AI agents.
+import { getIndexedTopLevel } from "@cloudflare/nimbus-docs";
+import { config } from "virtual:nimbus/config";
+import { withBasePath } from "../lib/base-path";
 
-> Official command-line client for the Emoera RAG knowledge platform. Designed for humans, scripts and AI agents.
+export const prerender = true;
 
-## Canonical resources
+export async function GET() {
+  const { leaves, groups } = await getIndexedTopLevel();
 
-- Documentation: https://dijkstra402.github.io/emoera-RAG-CLI/
-- Source: https://github.com/dijkstra402/emoera-RAG-CLI
-- Releases: https://github.com/dijkstra402/emoera-RAG-CLI/releases
-- Security policy: https://github.com/dijkstra402/emoera-RAG-CLI/blob/main/SECURITY.md
+  const lines = [
+    `# ${config.title}`,
+    "",
+    config.description ?? "Documentation index for AI agents.",
+    "",
+    `Full corpus (all pages, one document): ${new URL(withBasePath("/llms-full.txt"), new URL(config.site).origin).href}`,
+    "",
+    "## Pages",
+    "",
+  ];
 
-## Documentation
+  // Sort leaves + groups alphabetically into a single stable list.
+  type Row = { key: string; line: string };
+  const rows: Row[] = [];
 
-- Installation: https://dijkstra402.github.io/emoera-RAG-CLI/install
-- Quick start: https://dijkstra402.github.io/emoera-RAG-CLI/quickstart
-- Authentication: https://dijkstra402.github.io/emoera-RAG-CLI/authentication
-- Command reference: https://dijkstra402.github.io/emoera-RAG-CLI/commands
-- Agent automation: https://dijkstra402.github.io/emoera-RAG-CLI/automation
-- Troubleshooting: https://dijkstra402.github.io/emoera-RAG-CLI/troubleshooting
-- Release security: https://dijkstra402.github.io/emoera-RAG-CLI/release-security
+  for (const leaf of leaves) {
+    const description = leaf.description ? ` — ${leaf.description}` : "";
+    rows.push({
+      key: leaf.url,
+      line: `- [${leaf.title}](${new URL(withBasePath(leaf.markdownUrl), new URL(config.site).origin).href})${description}`,
+    });
+  }
 
-## Minimal workflow
+  for (const group of groups) {
+    // Older doc versions have their own /<v>/llms.txt; don't list them here.
+    if (group.kind === "version") continue;
+    rows.push({
+      key: `/${group.slug}`,
+      line: `- [${group.label}](${new URL(withBasePath(`/${group.slug}/llms.txt`), new URL(config.site).origin).href})`,
+    });
+  }
 
-1. Create an Agent API Token in Personal Center > Agent API.
-2. Run: emoera config init
-3. Run: emoera auth set-token
-4. Verify: emoera whoami
-5. Ask: emoera ask "Summarize the deployment guide"
+  rows.sort((a, b) => a.key.localeCompare(b.key));
+  for (const row of rows) lines.push(row.line);
 
-For automation, prefer --json or --jsonl, pass a stable --request-id and inject EMOERA_API_TOKEN through a secret manager.
-`;
-  return new Response(body, {
-    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+  lines.push("");
+
+  return new Response(lines.join("\n"), {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
   });
 }

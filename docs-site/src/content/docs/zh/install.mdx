@@ -1,0 +1,58 @@
+---
+title: 安装 CLI
+description: 在 macOS、Linux 与 Windows 上安装、升级或卸载 Emoera Agent CLI。
+audience: human
+sidebar:
+  order: 1
+  label: 安装
+---
+
+## macOS / Linux
+
+一键安装脚本会识别操作系统与 CPU 架构，从最新 GitHub Release 下载二进制、验证 SHA-256，并安装到当前用户可执行目录。
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dijkstra402/emoera-RAG-CLI/main/install.sh | sh
+```
+
+验证安装：
+
+```bash
+emoera --version
+```
+
+## Windows
+
+在 PowerShell 中运行：
+
+```powershell
+irm https://raw.githubusercontent.com/dijkstra402/emoera-RAG-CLI/main/install.ps1 | iex
+```
+
+重新打开 PowerShell 后验证：
+
+```powershell
+emoera --version
+```
+
+## 图形安装包
+
+从 [GitHub Releases](https://github.com/dijkstra402/emoera-RAG-CLI/releases/latest) 下载对应系统的安装包。
+
+| 系统 | 安装包 | 免安装包 |
+| --- | --- | --- |
+| macOS Apple Silicon | `darwin_arm64.pkg` | `darwin_arm64.tar.gz` |
+| macOS Intel | `darwin_amd64.pkg` | `darwin_amd64.tar.gz` |
+| Debian / Ubuntu | `linux_*.deb` | `linux_*.tar.gz` |
+| Fedora / RHEL / Rocky | `linux_*.rpm` | `linux_*.tar.gz` |
+| Windows x86_64 | `windows_amd64-setup.exe` | `windows_amd64.zip` |
+
+<Aside type="caution" title="社区签名说明">当前安装包尚未使用 Apple Developer ID 或 Windows 商业证书签名。请只从官方 GitHub Release 下载，并校验 SHA-256。</Aside>
+
+## 升级与卸载
+
+- 升级：重新运行一键安装命令或安装新版本安装包。
+- macOS PKG：删除 `/usr/local/bin/emoera`。
+- Debian / Ubuntu：运行 `sudo apt remove emoera-cli`。
+- Fedora / RHEL：运行 `sudo dnf remove emoera-cli`。
+- Windows：从“设置 → 应用 → 已安装的应用”卸载。

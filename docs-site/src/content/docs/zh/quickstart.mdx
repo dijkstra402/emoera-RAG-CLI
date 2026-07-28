@@ -1,0 +1,53 @@
+---
+title: 快速开始
+description: 配置服务地址、保存 Token，并完成第一次 RAG 问答。
+audience: human
+sidebar:
+  order: 2
+  label: 快速开始
+---
+
+<Steps>
+  <Step title="创建 Agent API Token">登录 E时代 RAG，打开“个人中心 → Agent API”，创建具有所需 Scope 的 Token。完整 Token 仅显示一次。</Step>
+  <Step title="初始化配置">
+
+```bash
+emoera config init
+```
+
+线上服务地址默认为 `https://rag.emoera.cn`。
+  </Step>
+  <Step title="安全保存 Token">
+
+```bash
+emoera auth set-token
+```
+
+按提示粘贴以 `em_sk_` 开头的 Token。
+  </Step>
+  <Step title="验证服务与身份">
+
+```bash
+emoera auth status
+emoera whoami
+emoera capabilities
+```
+  </Step>
+  <Step title="提出问题">
+
+```bash
+emoera ask "介绍一下知识库中的主要内容"
+```
+  </Step>
+</Steps>
+
+## 自建服务
+
+```bash
+emoera config set endpoint https://your-rag.example.com
+```
+
+## 下一步
+
+- 查看 <DocLink href="/zh/commands">命令参考</DocLink>，了解文档、检索、会话、模型与配额命令。
+- 在 CI 或 Agent 中使用时，请阅读 <DocLink href="/zh/automation">自动化与 Agent</DocLink>。

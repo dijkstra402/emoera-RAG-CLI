@@ -34,6 +34,12 @@ jobs:
       - name: Install dependencies
         working-directory: docs-site
         run: npm ci
+      - name: Type-check documentation
+        working-directory: docs-site
+        run: npm run typecheck
+      - name: Lint documentation
+        working-directory: docs-site
+        run: npm run lint:docs
       - name: Build documentation
         working-directory: docs-site
         run: npm run build

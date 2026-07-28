@@ -1,0 +1,25 @@
+---
+title: Command reference
+description: Core commands, global flags, and common Emoera Agent CLI workflows.
+audience: human
+sidebar:
+  order: 4
+  label: Commands
+---
+
+| Command | Purpose | Example |
+| --- | --- | --- |
+| `config` | Manage profiles | `emoera config list` |
+| `auth` | Store and verify tokens | `emoera auth status` |
+| `whoami` | Inspect token identity | `emoera whoami --json` |
+| `capabilities` | Inspect server capabilities | `emoera capabilities` |
+| `org` | List accessible organizations | `emoera org list` |
+| `doc` | Upload and inspect documents | `emoera doc upload ./manual.pdf` |
+| `search` | Run explainable hybrid search | `emoera search "deployment" --explain` |
+| `ask` | Run streaming RAG chat | `emoera ask "What are the risks?"` |
+| `chat` | Inspect sessions and runs | `emoera chat sessions` |
+| `model` | List models and multipliers | `emoera model list` |
+| `quota` | Inspect current quota | `emoera quota show` |
+| `status` | Inspect business status | `emoera status` |
+
+Use `emoera <command> --help` for all flags. Common global flags include `--profile`, `--endpoint`, `--output`, `--timeout`, `--request-id`, `--quiet`, `--no-color`, and `--debug`.

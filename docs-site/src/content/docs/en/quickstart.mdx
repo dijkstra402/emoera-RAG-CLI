@@ -1,0 +1,40 @@
+---
+title: Quickstart
+description: Configure the endpoint, save a token, and run your first RAG question.
+audience: human
+sidebar:
+  order: 2
+  label: Quickstart
+---
+
+<Steps>
+  <Step title="Create an Agent API Token">In Emoera RAG, open “Personal Center → Agent API”. Create a token with the scopes required by your task. The full token is shown once.</Step>
+  <Step title="Initialize a profile">
+
+```bash
+emoera config init
+```
+  </Step>
+  <Step title="Store the token securely">
+
+```bash
+emoera auth set-token
+```
+  </Step>
+  <Step title="Verify identity and capabilities">
+
+```bash
+emoera auth status
+emoera whoami
+emoera capabilities
+```
+  </Step>
+  <Step title="Ask your knowledge base">
+
+```bash
+emoera ask "Summarize the main content in my knowledge base"
+```
+  </Step>
+</Steps>
+
+For a self-hosted service, run `emoera config set endpoint https://your-rag.example.com`.

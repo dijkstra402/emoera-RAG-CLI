@@ -1,0 +1,25 @@
+---
+title: Releases and supply-chain security
+description: Verify packages, SBOMs, build provenance, and the current community-signing status.
+audience: human
+sidebar:
+  order: 7
+  label: Releases and security
+---
+
+Every [GitHub Release](https://github.com/dijkstra402/emoera-RAG-CLI/releases/latest) contains cross-platform binaries, installers, `SHA256SUMS`, a CycloneDX SBOM, a Sigstore bundle, and GitHub build provenance.
+
+```bash
+# Linux
+sha256sum -c SHA256SUMS --ignore-missing
+
+# macOS
+shasum -a 256 -c SHA256SUMS
+```
+
+- Download only from the official repository.
+- One-line installers verify the digest before replacing a binary.
+- Desktop tokens are stored in the operating system credential store.
+- Report vulnerabilities privately through the repository [security policy](https://github.com/dijkstra402/emoera-RAG-CLI/blob/main/SECURITY.md).
+
+<Aside type="note" title="Version links stay current">The documentation intentionally avoids hard-coding a “latest version”. Installers and Latest Release links resolve the newest stable GitHub Release automatically.</Aside>

@@ -1,0 +1,34 @@
+---
+title: Install the CLI
+description: Install, upgrade, or remove Emoera Agent CLI on macOS, Linux, and Windows.
+audience: human
+sidebar:
+  order: 1
+  label: Installation
+---
+
+## macOS / Linux
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dijkstra402/emoera-RAG-CLI/main/install.sh | sh
+emoera --version
+```
+
+## Windows
+
+```powershell
+irm https://raw.githubusercontent.com/dijkstra402/emoera-RAG-CLI/main/install.ps1 | iex
+emoera --version
+```
+
+The installers detect the operating system and CPU, download the latest GitHub Release, verify its SHA-256 digest, and install the binary into a user-accessible executable directory.
+
+## Native packages
+
+Download the matching artifact from [GitHub Releases](https://github.com/dijkstra402/emoera-RAG-CLI/releases/latest): `.pkg` for macOS, `.deb` or `.rpm` for Linux, and `-setup.exe` for Windows. Portable `.tar.gz` and `.zip` archives are also available.
+
+<Aside type="caution" title="Community signing">Packages are not currently signed with an Apple Developer ID or a commercial Windows certificate. Download only from the official Release and verify the checksum.</Aside>
+
+## Upgrade or remove
+
+Rerun the installer to upgrade. Remove `/usr/local/bin/emoera` on macOS, use your package manager on Linux, or uninstall Emoera Agent CLI from Windows Settings.

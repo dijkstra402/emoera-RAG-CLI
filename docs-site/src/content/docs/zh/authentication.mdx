@@ -1,0 +1,38 @@
+---
+title: 认证与 Token
+description: 安全创建、保存、轮换和撤销 Agent API Token。
+audience: human
+sidebar:
+  order: 3
+  label: 认证与 Token
+---
+
+## Token 来源优先级
+
+CLI 按以下顺序解析 Token：命令行 `--token` → 环境变量 `EMOERA_API_TOKEN` → 当前 Profile 的系统凭据库。
+
+<Render file="token-security-zh" />
+
+## 桌面环境
+
+```bash
+emoera auth set-token
+emoera auth status
+emoera auth logout
+```
+
+macOS 使用 Keychain，Windows 使用 Credential Manager，Linux 桌面环境使用 Secret Service。CLI 配置文件只保存服务地址和非敏感默认参数。
+
+## CI、容器与无桌面 Linux
+
+```bash
+export EMOERA_ENDPOINT="https://rag.emoera.cn"
+export EMOERA_API_TOKEN="em_sk_xxx"
+emoera whoami --json
+```
+
+将 Token 放在 CI 平台的加密 Secret 中，并只分配任务所需 Scope。
+
+## 最小权限 Scope
+
+常见 Scope 包括身份读取、文档读取/写入、检索、问答与会话读取。自动化 Token 应按任务拆分，避免长期使用全权限 Token。

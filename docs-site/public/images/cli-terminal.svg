@@ -1,30 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
-  <title id="title">Emoera Agent CLI terminal</title>
-  <desc id="desc">A terminal showing a knowledge base question moving through retrieval and answer generation.</desc>
-  <defs>
-    <filter id="shadow" x="-10%" y="-10%" width="130%" height="140%"><feDropShadow dx="18" dy="20" stdDeviation="0" flood-color="#1c1a17" flood-opacity=".14"/></filter>
-    <pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse"><path d="M56 0H0V56" fill="none" stroke="#d9d1bf" stroke-width="1" opacity=".55"/></pattern>
-  </defs>
-  <rect width="1200" height="720" fill="#f7f3e8"/>
-  <rect width="1200" height="720" fill="url(#grid)"/>
-  <g filter="url(#shadow)">
-    <rect x="92" y="72" width="1016" height="560" fill="#181a20" stroke="#1c1a17" stroke-width="3"/>
-    <path d="M92 132h1016" stroke="#3a3d45" stroke-width="2"/>
-    <circle cx="130" cy="102" r="9" fill="#d9342b"/><circle cx="160" cy="102" r="9" fill="#d9a52e"/><circle cx="190" cy="102" r="9" fill="#38a06b"/>
-    <text x="600" y="108" text-anchor="middle" fill="#aaa59a" font-family="ui-monospace, monospace" font-size="16">emoera — knowledge terminal</text>
-    <text x="140" y="184" fill="#ef6158" font-family="ui-monospace, monospace" font-size="21">$</text>
-    <text x="174" y="184" fill="#f4efe4" font-family="ui-monospace, monospace" font-size="21">emoera ask "Summarize our deployment policy"</text>
-    <g font-family="ui-monospace, monospace" font-size="18">
-      <text x="140" y="244" fill="#ef6158">◆</text><text x="178" y="244" fill="#c7c2b8">rewrite query</text>
-      <text x="140" y="284" fill="#ef6158">◆</text><text x="178" y="284" fill="#c7c2b8">retrieve authorized knowledge</text>
-      <text x="140" y="324" fill="#ef6158">◆</text><text x="178" y="324" fill="#c7c2b8">rerank relevant chunks</text>
-      <text x="140" y="364" fill="#ef6158">◆</text><text x="178" y="364" fill="#c7c2b8">generate grounded answer</text>
-    </g>
-    <text x="140" y="430" fill="#ffffff" font-family="ui-monospace, monospace" font-size="20" font-weight="700">ANSWER</text>
-    <text x="140" y="472" fill="#e4dfd4" font-family="ui-monospace, monospace" font-size="18">Run validation, configuration checks, and health probes</text>
-    <text x="140" y="504" fill="#e4dfd4" font-family="ui-monospace, monospace" font-size="18">before activating the release. Roll back on failure.</text>
-    <path d="M140 548h920" stroke="#3a3d45"/>
-    <text x="140" y="584" fill="#89857c" font-family="ui-monospace, monospace" font-size="15">request_id req_7e4a…</text>
-    <text x="878" y="584" fill="#ef6158" font-family="ui-monospace, monospace" font-size="15">scope rag:ask</text>
-  </g>
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#F7F2E7"/>
+  <path d="M0 90H1200M0 180H1200M0 270H1200M0 360H1200M0 450H1200M0 540H1200M90 0V630M180 0V630M270 0V630M360 0V630M450 0V630M540 0V630M630 0V630M720 0V630M810 0V630M900 0V630M990 0V630M1080 0V630" stroke="#221E1A" stroke-opacity=".08"/>
+  <rect x="82" y="72" width="1036" height="486" fill="#181512"/>
+  <rect x="82" y="72" width="1036" height="58" fill="#29231F"/>
+  <circle cx="122" cy="101" r="8" fill="#D9342B"/><circle cx="148" cy="101" r="8" fill="#D9A12B"/><circle cx="174" cy="101" r="8" fill="#3C9A5F"/>
+  <text x="214" y="108" fill="#B9AEA1" font-family="monospace" font-size="20">emoera · agent terminal</text>
+  <text x="122" y="182" fill="#E95B51" font-family="monospace" font-size="25">$</text><text x="158" y="182" fill="#FAF6EE" font-family="monospace" font-size="25">emoera ask "总结发布风险"</text>
+  <text x="122" y="239" fill="#D9A12B" font-family="monospace" font-size="22">◆ 理解并改写问题</text>
+  <text x="122" y="280" fill="#D9A12B" font-family="monospace" font-size="22">◆ 检索知识库</text>
+  <text x="122" y="321" fill="#D9A12B" font-family="monospace" font-size="22">◆ 重排高相关内容</text>
+  <text x="122" y="362" fill="#D9A12B" font-family="monospace" font-size="22">◆ 组织回答</text>
+  <text x="122" y="430" fill="#FAF6EE" font-family="sans-serif" font-size="28" font-weight="700">回答 / ANSWER</text>
+  <text x="122" y="477" fill="#C8BEB2" font-family="sans-serif" font-size="22">从终端安全调用你的企业知识库。</text>
+  <rect x="122" y="511" width="16" height="25" fill="#D9342B"/>
+  <rect x="918" y="448" width="150" height="58" fill="#D9342B"/><text x="958" y="485" fill="white" font-family="serif" font-size="28" font-weight="700">EMOERA</text>
 </svg>

@@ -1,0 +1,32 @@
+---
+title: Authentication and tokens
+description: Create, store, rotate, and revoke Agent API Tokens safely.
+audience: human
+sidebar:
+  order: 3
+  label: Authentication
+---
+
+The CLI resolves credentials in this order: `--token` → `EMOERA_API_TOKEN` → the current profile's operating system credential store.
+
+<Render file="token-security-en" />
+
+## Desktop usage
+
+```bash
+emoera auth set-token
+emoera auth status
+emoera auth logout
+```
+
+Tokens are stored in macOS Keychain, Windows Credential Manager, or Linux Secret Service.
+
+## CI and containers
+
+```bash
+export EMOERA_ENDPOINT="https://rag.emoera.cn"
+export EMOERA_API_TOKEN="em_sk_xxx"
+emoera whoami --json
+```
+
+Keep the value in your CI provider's encrypted secret store and issue a dedicated least-privilege token for each automation identity.

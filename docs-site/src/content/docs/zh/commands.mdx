@@ -1,0 +1,50 @@
+---
+title: 命令参考
+description: Emoera Agent CLI 的核心命令、全局参数与常见组合。
+audience: human
+sidebar:
+  order: 4
+  label: 命令参考
+---
+
+## 命令总览
+
+| 命令 | 用途 | 示例 |
+| --- | --- | --- |
+| `config` | 管理环境 Profile | `emoera config list` |
+| `auth` | 保存或验证 Token | `emoera auth status` |
+| `whoami` | 查看当前身份 | `emoera whoami --json` |
+| `capabilities` | 查看服务能力 | `emoera capabilities` |
+| `org` | 查看可访问组织 | `emoera org list` |
+| `doc` | 文档上传与查询 | `emoera doc upload ./manual.pdf` |
+| `search` | 可解释混合检索 | `emoera search "部署规范" --explain` |
+| `ask` | 流式 RAG 问答 | `emoera ask "有哪些风险？"` |
+| `chat` | 会话与运行管理 | `emoera chat sessions` |
+| `model` | 查看模型与倍率 | `emoera model list` |
+| `quota` | 查看用量配额 | `emoera quota show` |
+| `status` | 查看业务状态 | `emoera status` |
+
+## 文档与检索
+
+```bash
+emoera doc list
+emoera doc upload ./manual.pdf
+emoera doc show <file-md5>
+emoera doc status <file-md5>
+emoera search "设备监控架构" --top-k 10 --min-score 0.3 --explain
+```
+
+## 问答与会话
+
+```bash
+emoera ask "比较两份方案" --model "Qwen3 8B" \
+  --file <file-md5-1> --file <file-md5-2> --suggestions
+emoera chat sessions
+emoera chat messages <session-uuid>
+emoera ask "继续分析第二点" --session <session-uuid>
+emoera chat cancel <request-id>
+```
+
+## 全局参数
+
+使用 `emoera <command> --help` 查看完整参数。常用全局参数包括 `--profile`、`--endpoint`、`--output`、`--timeout`、`--request-id`、`--quiet`、`--no-color` 与 `--debug`。

@@ -1,0 +1,26 @@
+---
+title: Troubleshooting
+description: Diagnose installation, token, permission, network, streaming, and credential-store failures.
+audience: human
+sidebar:
+  order: 6
+  label: Troubleshooting
+---
+
+Start with:
+
+```bash
+emoera --version
+emoera auth status
+emoera capabilities
+emoera status
+emoera --debug ask "connection test"
+```
+
+## Common failures
+
+- **Command not found** — restart the terminal and confirm the installation directory is on `PATH`.
+- **401** — save the token again and confirm it has not expired or been revoked.
+- **403** — verify token scopes, organization membership, and document visibility.
+- **Timeout or interrupted stream** — increase `--timeout`, inspect `emoera status`, and check proxies. Retry only exit code `7` or errors marked retryable.
+- **No Linux keychain** — inject `EMOERA_API_TOKEN` through your secret manager; never bake it into an image.

@@ -1,49 +1,102 @@
 ---
-import DocsLayout from '../layouts/DocsLayout.astro';
+import { Icon } from "astro-icon/components";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/Header.astro";
+import { config } from "virtual:nimbus/config";
+import { withBasePath } from "../lib/base-path";
 
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const docsHref = (path: string) => `${base}/${path}`;
+const repository = "https://github.com/dijkstra402/emoera-RAG-CLI";
+const release = `${repository}/releases/latest`;
 ---
 
-<DocsLayout title="让知识库进入终端" description="Emoera Agent CLI 为开发者和 AI Agent 提供安全、可组合、可审计的知识库访问方式。" section="Overview">
-  <Fragment slot="toc">
-    <a href="#open-source">开源 CLI</a>
-    <a href="#why">为什么使用 CLI</a>
-    <a href="#capabilities">核心能力</a>
-    <a href="#first-command">第一个命令</a>
-  </Fragment>
+<BaseLayout title={config.title} description={config.description} socialImage={withBasePath("/images/cli-terminal.svg")}>
+  <div class="flex min-h-screen flex-col">
+    <Header showSidebar={false} />
+    <main id="main-content" class="flex-1">
+      <section class="docs-hero mx-auto grid w-full max-w-[80rem] gap-12 px-5 pb-16 pt-16 lg:grid-cols-[1.05fr_.95fr] lg:px-10 lg:pb-24 lg:pt-24">
+        <div class="flex flex-col justify-center">
+          <div class="mb-6 flex items-center gap-3 font-mono text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+            <span class="h-2 w-2 bg-primary"></span>
+            Developer tool · Agent ready
+          </div>
+          <h1 class="max-w-3xl text-[clamp(2.8rem,7vw,6.4rem)] font-semibold leading-[0.93] tracking-[-0.065em] text-foreground">
+            把知识库能力<br />带进终端。
+          </h1>
+          <p class="mt-7 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+            Emoera Agent CLI 为开发者、自动化脚本与 AI Agent 提供安全 Token、文档管理、可解释检索和流式 RAG 问答。
+          </p>
+          <div class="mt-9 flex flex-wrap gap-3">
+            <a class="hero-primary" href={withBasePath("/zh/quickstart")}>开始使用 <Icon name="ph:arrow-right" class="h-4 w-4" /></a>
+            <a class="hero-secondary" href={repository} target="_blank" rel="noopener"><Icon name="ph:github-logo" class="h-4 w-4" /> 查看源码</a>
+          </div>
+          <div class="mt-10 flex flex-wrap gap-x-8 gap-y-3 border-t border-border pt-5 font-mono text-xs text-muted-foreground">
+            <span>macOS · Linux · Windows</span>
+            <a class="text-muted-foreground no-underline hover:text-primary" href={release}>Latest release ↗</a>
+            <a class="text-muted-foreground no-underline hover:text-primary" href={withBasePath("/en")}>English docs →</a>
+          </div>
+        </div>
 
-  <div class="docs-visual-hero" id="open-source">
-    <img src={`${base}/images/cli-terminal.svg`} alt="Emoera CLI 在终端中执行知识库问答" width="1200" height="720" />
-    <div class="visual-caption">
-      <span>OPEN SOURCE / v0.1.1</span>
-      <p>一个二进制文件，把受权限保护的企业知识带进终端、脚本、CI 与 Agent。</p>
-      <a href="https://github.com/dijkstra402/emoera-RAG-CLI">查看 GitHub 仓库 →</a>
-    </div>
+        <div class="terminal-frame self-center" aria-label="Emoera CLI terminal example">
+          <div class="terminal-bar">
+            <div class="flex gap-2" aria-hidden="true"><span></span><span></span><span></span></div>
+            <span>emoera · zsh</span>
+            <span>01</span>
+          </div>
+          <div class="terminal-body">
+            <p><span class="terminal-prompt">$</span> curl -fsSL https://raw.githubusercontent.com/<br class="hidden sm:block" />dijkstra402/emoera-RAG-CLI/main/install.sh | sh</p>
+            <p class="terminal-muted">✓ detected darwin/arm64<br />✓ checksum verified<br />✓ installed /usr/local/bin/emoera</p>
+            <p><span class="terminal-prompt">$</span> emoera ask "总结发布风险"</p>
+            <p class="terminal-stage">◆ 理解并改写问题<br />◆ 检索知识库<br />◆ 重排高相关内容<br />◆ 组织回答</p>
+            <p class="terminal-answer">发布前应重点核对依赖健康、数据库迁移、回滚路径与监控告警……</p>
+            <div class="terminal-cursor" aria-hidden="true"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="border-y border-border bg-card/85">
+        <div class="mx-auto grid max-w-[80rem] lg:grid-cols-[.65fr_1.35fr]">
+          <div class="border-b border-border px-5 py-12 lg:border-b-0 lg:border-r lg:px-10 lg:py-16">
+            <p class="font-mono text-xs uppercase tracking-[0.2em] text-primary">Install once</p>
+            <h2 class="mt-4 max-w-sm text-3xl font-semibold tracking-tight">一条命令，进入你的知识库。</h2>
+          </div>
+          <div class="grid sm:grid-cols-2">
+            <a href={withBasePath("/zh/install#macos--linux")} class="install-row border-b border-border sm:border-r">
+              <span class="install-number">01</span><div><strong>macOS / Linux</strong><code>curl …/install.sh | sh</code></div><Icon name="ph:arrow-up-right" />
+            </a>
+            <a href={withBasePath("/zh/install#windows")} class="install-row border-b border-border">
+              <span class="install-number">02</span><div><strong>Windows</strong><code>irm …/install.ps1 | iex</code></div><Icon name="ph:arrow-up-right" />
+            </a>
+            <a href={withBasePath("/zh/authentication")} class="install-row sm:border-r">
+              <span class="install-number">03</span><div><strong>安全认证</strong><small>Keychain / Secret Service / Credential Manager</small></div><Icon name="ph:arrow-up-right" />
+            </a>
+            <a href={withBasePath("/zh/automation")} class="install-row">
+              <span class="install-number">04</span><div><strong>Agent 自动化</strong><small>JSON · JSONL · Request ID · Exit codes</small></div><Icon name="ph:arrow-up-right" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="mx-auto max-w-[80rem] px-5 py-16 lg:px-10 lg:py-24">
+        <div class="grid gap-12 lg:grid-cols-[.6fr_1.4fr]">
+          <div>
+            <p class="font-mono text-xs uppercase tracking-[0.2em] text-primary">Designed for work</p>
+            <h2 class="mt-4 text-3xl font-semibold tracking-tight">不是网页的缩小版。</h2>
+            <p class="mt-4 leading-7 text-muted-foreground">CLI 面向管道、批处理与 Agent 调用设计：输出稳定，错误可判断，权限可收敛。</p>
+          </div>
+          <div class="capability-ledger">
+            <div><span>01</span><strong>知识库问答</strong><p>流式回答、限定文档、模型选择、会话续问。</p></div>
+            <div><span>02</span><strong>可解释检索</strong><p>Top-K、最低分、召回详情与结构化输出。</p></div>
+            <div><span>03</span><strong>文档自动化</strong><p>上传、断点续传、状态查询与组织范围。</p></div>
+            <div><span>04</span><strong>安全可运营</strong><p>最小权限 Scope、系统凭据库、配额与请求追踪。</p></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="border-t border-border px-5 py-7 text-sm text-muted-foreground lg:px-10">
+      <div class="mx-auto flex max-w-[80rem] flex-col justify-between gap-3 sm:flex-row">
+        <span>© 2026 Emoera · Apache-2.0</span>
+        <span>Built with Cloudflare Nimbus · Open source on GitHub</span>
+      </div>
+    </footer>
   </div>
-
-  <h2 id="why">为什么使用 CLI</h2>
-  <p>网页适合探索，命令行适合进入工作流。你可以在终端检索文档、发起 RAG 问答，也可以把同一套能力交给脚本、CI 和 Agent 调用。</p>
-  <blockquote>一个 Token 对应一组明确 Scope；每次请求都有可追踪的请求 ID，并遵守平台配额与组织权限。</blockquote>
-
-  <img class="workflow-image" src={`${base}/images/agent-workflow.svg`} alt="开发者和 AI Agent 通过 Emoera CLI 访问知识库的调用链路" width="1200" height="480" loading="lazy" />
-
-  <h2 id="capabilities">核心能力</h2>
-  <div class="feature-ledger">
-    <div><b>流式知识问答</b><span>实时展示检索、重排和生成阶段。</span></div>
-    <div><b>权限内检索</b><span>只返回当前 Token 可访问的组织与文档。</span></div>
-    <div><b>结构化输出</b><span>table、JSON 与 JSONL 适配人和 Agent。</span></div>
-    <div><b>系统凭据存储</b><span>Token 默认进入 Keychain，而不是明文配置。</span></div>
-    <div><b>文档自动化</b><span>上传、解析状态与文件详情可脚本化。</span></div>
-    <div><b>多环境 Profile</b><span>开发、预发和生产配置彼此隔离。</span></div>
-  </div>
-
-  <h2 id="first-command">第一个命令</h2>
-  <pre><code>emoera config init
-emoera auth set-token
-emoera ask "总结知识库中的部署规范"</code></pre>
-  <div class="next-step">
-    <div><b>准备安装？</b><span>选择适合 macOS、Linux 或 Windows 的原生安装包。</span></div>
-    <a href={docsHref('install')}>查看安装指南</a>
-  </div>
-</DocsLayout>
+</BaseLayout>

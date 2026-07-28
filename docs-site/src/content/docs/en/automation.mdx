@@ -1,0 +1,40 @@
+---
+title: Automation and agents
+description: Integrate the CLI with pipelines and AI agents using stable output, request IDs, and exit codes.
+audience: human
+sidebar:
+  order: 5
+  label: Automation and agents
+---
+
+## Structured output
+
+```bash
+emoera search "release rollback" --json
+emoera ask "List release risks" --json
+emoera ask "Run the checks step by step" --jsonl
+```
+
+Use JSON for final results and JSONL for streaming events. Parse fields rather than human-oriented terminal output.
+
+## Correlation
+
+```bash
+emoera --request-id "deploy-audit-20260728-001" \
+  ask "Check release risk and propose a rollback plan" --json --no-color
+```
+
+## Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | Success |
+| `1` | General runtime error |
+| `2` | Invalid arguments or configuration |
+| `3` | Missing or invalid authentication |
+| `4` | Insufficient permission |
+| `5` | Resource not found |
+| `6` | Rate or quota limit exceeded |
+| `7` | Network or service unavailable |
+
+Give each agent its own least-privilege token, set a timeout, retry only retryable failures, and preserve request IDs without logging credentials or private document content.

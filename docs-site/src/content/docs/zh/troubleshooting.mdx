@@ -1,0 +1,40 @@
+---
+title: 故障排查
+description: 诊断安装、认证、权限、网络、流式输出和系统凭据库问题。
+audience: human
+sidebar:
+  order: 6
+  label: 故障排查
+---
+
+## 推荐诊断顺序
+
+```bash
+emoera --version
+emoera auth status
+emoera capabilities
+emoera status
+emoera --debug ask "连接测试"
+```
+
+## 常见问题
+
+### 找不到 `emoera`
+
+重新打开终端，并确认安装目录已加入 `PATH`。Windows 安装后需要重新启动 PowerShell。
+
+### 401 / Token 无效
+
+运行 `emoera auth set-token` 重新保存 Token，并确认 Token 没有过期或被撤销。
+
+### 403 / 无权限
+
+检查 Token Scope、组织权限和文档可见范围。CLI 不会绕过网页端权限模型。
+
+### 请求超时或流中断
+
+增加 `--timeout`，检查 `emoera status` 与网络代理。对于自动化调用，只在退出码 `7` 或服务端明确标记 `retryable` 时重试。
+
+### Linux 无法保存凭据
+
+服务器或精简容器通常没有 Secret Service。请通过 CI Secret 注入 `EMOERA_API_TOKEN`，不要把 Token 保存进镜像。

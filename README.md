@@ -7,7 +7,7 @@
 
 `emoera-CLI` 是 E时代 RAG 知识库面向开发者和 Agent 的命令行客户端。它支持安全保存 Agent API Token、文档管理、混合检索、流式 RAG 问答、会话查询、模型与配额查看，既适合人工使用，也适合脚本和自动化 Agent 调用。
 
-完整文档：[dijkstra402.github.io/emoera-RAG-CLI](https://dijkstra402.github.io/emoera-RAG-CLI/)
+完整文档：[dijkstra402.github.io/emoera-RAG-CLI](https://dijkstra402.github.io/emoera-RAG-CLI/)。文档站基于 Cloudflare 官方 [Nimbus](https://github.com/cloudflare/nimbus) 架构构建，提供中英文内容、全文搜索、移动端适配和面向 Agent 的 `llms.txt`。
 
 ## 能力概览
 

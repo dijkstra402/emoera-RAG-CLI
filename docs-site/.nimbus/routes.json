@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "base": "/emoera-RAG-CLI/",
+  "knownRoutes": [
+    "/",
+    "/404",
+    "/en",
+    "/en/authentication",
+    "/en/automation",
+    "/en/commands",
+    "/en/install",
+    "/en/quickstart",
+    "/en/release-security",
+    "/en/troubleshooting",
+    "/zh",
+    "/zh/authentication",
+    "/zh/automation",
+    "/zh/commands",
+    "/zh/install",
+    "/zh/quickstart",
+    "/zh/release-security",
+    "/zh/troubleshooting"
+  ],
+  "opaqueNamespaces": []
+}

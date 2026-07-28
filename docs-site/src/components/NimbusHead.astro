@@ -1,0 +1,184 @@
+---
+/**
+ * Project-aware Nimbus head.
+ *
+ * Nimbus' upstream head assumes the documentation is mounted at `/`. This
+ * repository is published below `/emoera-RAG-CLI/` on GitHub Pages, so every
+ * generated discovery asset must retain Astro's base path.
+ */
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { config } from "virtual:nimbus/config";
+import {
+  getCollectionLlmsUrl,
+  getVersionAlternates,
+  getVersionStatus,
+} from "@cloudflare/nimbus-docs";
+import type { HeadElement } from "@cloudflare/nimbus-docs/types";
+import { stripBasePath, withBasePath } from "@/lib/base-path";
+
+export interface Props {
+  title: string;
+  description?: string;
+  noindex?: boolean;
+  markdownUrl?: string;
+  socialImage?: string;
+  lastUpdated?: Date;
+  head?: HeadElement[];
+  collection?: string;
+  entryId?: string;
+}
+
+const {
+  title,
+  description,
+  noindex,
+  markdownUrl,
+  socialImage,
+  lastUpdated,
+  head: pageHead = [],
+  collection,
+  entryId,
+} = Astro.props;
+
+const hasSite = Boolean(Astro.site);
+const currentSlug = stripBasePath(Astro.url.pathname);
+const lang = currentSlug === "/en" || currentSlug.startsWith("/en/")
+  ? "en"
+  : config.locale ?? "zh-CN";
+const isHomePage = currentSlug === "/";
+
+const versionRecord = collection && entryId
+  ? await getVersionAlternates(collection, entryId)
+  : null;
+const versionCanonicalPath = versionRecord?.canonical?.url ?? null;
+const versionStatus = collection ? await getVersionStatus(collection) : null;
+const isHiddenVersion = versionStatus?.isHidden === true;
+
+const llmsIndexPath = isHiddenVersion
+  ? null
+  : collection
+    ? await getCollectionLlmsUrl(collection)
+    : "/llms.txt";
+const llmsIndexUrl = llmsIndexPath
+  ? Astro.site
+    ? new URL(withBasePath(llmsIndexPath), Astro.site.origin).href
+    : withBasePath(llmsIndexPath)
+  : null;
+
+const canonical = Astro.site
+  ? versionCanonicalPath
+    ? new URL(withBasePath(versionCanonicalPath), Astro.site.origin).href
+    : new URL(Astro.url.pathname, Astro.site.origin).href
+  : null;
+const fullTitle = title !== config.title ? `${title} | ${config.title}` : title;
+const resolvedDescription = description ?? config.description;
+const ogType = isHomePage ? "website" : "article";
+
+const publicDir = join(process.cwd(), "public");
+const faviconCandidates: ReadonlyArray<{ file: string; type: string }> = [
+  { file: "favicon.svg", type: "image/svg+xml" },
+  { file: "favicon.ico", type: "image/x-icon" },
+  { file: "favicon.png", type: "image/png" },
+];
+const matchedFavicon = faviconCandidates.find((candidate) =>
+  existsSync(join(publicDir, candidate.file))) ?? faviconCandidates[0];
+const faviconHref = withBasePath(`/${matchedFavicon.file}`);
+
+const defaultSocialImage = existsSync(join(publicDir, "opengraph.png"))
+  ? "/opengraph.png"
+  : existsSync(join(publicDir, "logo.png"))
+    ? "/logo.png"
+    : "/og.png";
+const socialImagePath = socialImage ?? config.socialImage ?? defaultSocialImage;
+const ogImage = socialImagePath
+  ? Astro.site
+    ? new URL(withBasePath(socialImagePath), Astro.site.origin).href
+    : withBasePath(socialImagePath)
+  : null;
+const ogImageAlt = config.socialImageAlt;
+
+const structuredData = canonical
+  ? JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": isHomePage ? "WebSite" : "WebPage",
+      name: fullTitle,
+      ...(resolvedDescription ? { description: resolvedDescription } : {}),
+      url: canonical,
+      inLanguage: lang,
+      ...(ogImage ? { image: ogImage } : {}),
+      ...(isHomePage
+        ? {}
+        : {
+            isPartOf: {
+              "@type": "WebSite",
+              name: config.title,
+              url: Astro.site
+                ? new URL(withBasePath("/"), Astro.site.origin).href
+                : config.site,
+            },
+            ...(lastUpdated ? { dateModified: lastUpdated.toISOString() } : {}),
+          }),
+    })
+  : null;
+
+const mergedHead = [...(config.head ?? []), ...pageHead];
+const shikiCssHref = `${withBasePath("/_nimbus/shiki.css")}${
+  import.meta.env.DEV ? `?v=${Date.now()}` : ""
+}`;
+const sitemapHref = withBasePath("/sitemap-index.xml");
+---
+
+<title>{fullTitle}</title>
+
+<meta name="generator" content={Astro.generator} />
+{resolvedDescription && <meta name="description" content={resolvedDescription} />}
+{noindex && <meta name="robots" content="noindex" />}
+
+<link rel="icon" type={matchedFavicon.type} href={faviconHref} />
+<link rel="stylesheet" href={shikiCssHref} />
+{hasSite && canonical && <link rel="canonical" href={canonical} />}
+{hasSite && <link rel="sitemap" href={sitemapHref} />}
+{markdownUrl && !isHiddenVersion && (
+  <link rel="alternate" type="text/markdown" href={markdownUrl} />
+)}
+{hasSite && llmsIndexUrl && (
+  <link rel="alternate" type="text/plain" href={llmsIndexUrl} title="LLM index" />
+)}
+{!isHiddenVersion && versionRecord?.alternates.map((alternate) => (
+  <link
+    rel="alternate"
+    data-version={alternate.version}
+    href={Astro.site
+      ? new URL(withBasePath(alternate.url), Astro.site.origin).href
+      : withBasePath(alternate.url)}
+  />
+))}
+
+<meta property="og:title" content={fullTitle} />
+<meta property="og:type" content={ogType} />
+<meta property="og:site_name" content={config.title} />
+<meta property="og:locale" content={lang} />
+{resolvedDescription && <meta property="og:description" content={resolvedDescription} />}
+{hasSite && canonical && <meta property="og:url" content={canonical} />}
+{ogImage && <meta property="og:image" content={ogImage} />}
+{ogImage && ogImageAlt && <meta property="og:image:alt" content={ogImageAlt} />}
+{ogImage && <meta property="og:image:width" content="1200" />}
+{ogImage && <meta property="og:image:height" content="630" />}
+{!isHomePage && lastUpdated && (
+  <meta property="article:modified_time" content={lastUpdated.toISOString()} />
+)}
+
+<meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
+<meta name="twitter:title" content={fullTitle} />
+{resolvedDescription && <meta name="twitter:description" content={resolvedDescription} />}
+{ogImage && <meta name="twitter:image" content={ogImage} />}
+{ogImage && ogImageAlt && <meta name="twitter:image:alt" content={ogImageAlt} />}
+
+{structuredData && <script is:inline type="application/ld+json" set:html={structuredData} />}
+
+{mergedHead.map(({ tag: Tag, attrs = {}, content }) =>
+  content
+    ? <Tag {...attrs} set:html={content} />
+    : <Tag {...attrs} />
+)}
