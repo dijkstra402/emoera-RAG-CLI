@@ -128,6 +128,15 @@ emoera capabilities
 emoera ask "介绍一下知识库中的主要内容"
 ```
 
+服务端开放多个模型时，可以先查看模型并为当前 Profile 保存默认选择：
+
+```bash
+emoera model list
+emoera model use "Qwen3 8B"
+emoera model current
+emoera ask "用知识库总结本周项目风险"
+```
+
 自建部署可修改服务地址：
 
 ```bash
@@ -155,7 +164,7 @@ emoera ask "总结最新上传的技术文档" --json
 | `search` | 权限内混合检索 | `emoera search "部署规范" --explain` |
 | `ask` | 发起流式 RAG 问答 | `emoera ask "有哪些风险？"` |
 | `chat` | 查询会话、运行或取消请求 | `emoera chat sessions` |
-| `model` | 查看可用模型与倍率 | `emoera model list` |
+| `model` | 查看、选择或重置默认模型 | `emoera model use "Qwen3 8B"` |
 | `quota` | 查看当前用量与配额 | `emoera quota show` |
 | `status` | 查看服务状态 | `emoera status` |
 
@@ -193,6 +202,9 @@ emoera chat messages <session-uuid>
 emoera chat run <request-id>
 emoera chat cancel <request-id>
 emoera model list
+emoera model current
+emoera model use "Qwen3 8B"
+emoera model reset
 emoera quota show
 emoera status
 ```
@@ -213,7 +225,37 @@ emoera auth set-token
 emoera --profile staging ask "测试问题"
 ```
 
-不同 Profile 的 Token 分别保存在系统 Keychain 中，配置文件只保存服务地址和默认输出格式。
+不同 Profile 的 Token 分别保存在系统 Keychain 中，配置文件保存服务地址、默认输出格式和默认模型。
+
+## 模型选择
+
+`emoera ask --model` 可以只覆盖当前一次问答；`emoera model use` 会把默认模型保存到当前 Profile。模型名称和显示名称都可以使用，CLI 会在保存前向服务端校验模型是否存在且可用。
+
+```bash
+# 查看服务端模型、倍率、可用状态和当前选择
+emoera model list
+
+# 保存当前 Profile 的默认模型
+emoera model use "Qwen3 8B"
+
+# 查看最终生效的模型及配置来源
+emoera model current
+
+# 只在本次问答使用另一个模型
+emoera ask "给出更深入的风险分析" --model "DeepSeek R1 Qwen3 8B"
+
+# 清除 Profile 默认值，恢复服务端默认模型
+emoera model reset
+```
+
+CI、容器或临时终端可以通过环境变量覆盖 Profile：
+
+```bash
+export EMOERA_MODEL="siliconflow-qwen3-8b"
+emoera ask "总结知识库"
+```
+
+模型解析优先级为：`ask --model` → `EMOERA_MODEL` → 当前 Profile 的默认模型 → 服务端默认模型。模型倍率会影响 AI 对话配额消耗，切换前可通过 `emoera model list` 查看。
 
 ## Agent 与自动化接入
 
@@ -224,11 +266,12 @@ emoera --request-id "deploy-audit-20260727-001" \
   ask "检查发布风险并列出对应措施" --json --no-color
 ```
 
-配置优先级从高到低为：命令行参数 → 环境变量 → 当前 Profile → 内置默认值。无桌面 Keychain 的 CI 或容器环境可安全注入变量：
+通用配置优先级从高到低为：命令行参数 → 环境变量 → 当前 Profile → 内置默认值。无桌面 Keychain 的 CI 或容器环境可安全注入变量：
 
 ```bash
 export EMOERA_ENDPOINT="https://rag.emoera.cn"
 export EMOERA_API_TOKEN="em_sk_xxx"
+export EMOERA_MODEL="siliconflow-qwen3-8b"
 emoera search "发布回滚" --json
 ```
 

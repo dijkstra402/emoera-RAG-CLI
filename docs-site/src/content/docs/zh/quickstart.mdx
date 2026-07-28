@@ -33,6 +33,16 @@ emoera whoami
 emoera capabilities
 ```
   </Step>
+  <Step title="选择默认模型">
+
+```bash
+emoera model list
+emoera model use "Qwen3 8B"
+emoera model current
+```
+
+这一步可跳过；未选择时使用服务端默认模型。
+  </Step>
   <Step title="提出问题">
 
 ```bash
@@ -49,5 +59,6 @@ emoera config set endpoint https://your-rag.example.com
 
 ## 下一步
 
-- 查看 <DocLink href="/zh/commands">命令参考</DocLink>，了解文档、检索、会话、模型与配额命令。
+- 查看 <DocLink href="/zh/models">模型选择</DocLink>，设置 Profile 默认模型或单次覆盖。
+- 查看 <DocLink href="/zh/commands">命令参考</DocLink>，了解文档、检索、会话与配额命令。
 - 在 CI 或 Agent 中使用时，请阅读 <DocLink href="/zh/automation">自动化与 Agent</DocLink>。

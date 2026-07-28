@@ -54,13 +54,17 @@ func newAskCommand(app *application) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			client, runtime, err := app.client()
+			if err != nil {
+				return err
+			}
 			request, err := buildAskRequest(question, options)
 			if err != nil {
 				return err
 			}
-			client, runtime, err := app.client()
-			if err != nil {
-				return err
+			if request.ModelName == nil && runtime.DefaultModel != "" {
+				model := runtime.DefaultModel
+				request.ModelName = &model
 			}
 			mode := runtime.Output
 			if options.jsonOutput {
@@ -90,7 +94,7 @@ func newAskCommand(app *application) *cobra.Command {
 	}
 	flags := command.Flags()
 	flags.StringVar(&options.inputFile, "input-file", "", "从文件读取问题")
-	flags.StringVar(&options.model, "model", "", "指定模型名称")
+	flags.StringVar(&options.model, "model", "", "本次问答使用的模型（运行 emoera model list 查看）")
 	flags.StringVar(&options.session, "session", "", "继续指定会话 UUID")
 	flags.Int64Var(&options.promptTemplateID, "prompt-template-id", 0, "指定 Prompt 模板 ID")
 	flags.StringArrayVar(&options.orgTags, "org-tag", nil, "限定组织标签，可重复指定")

@@ -1,0 +1,74 @@
+---
+title: Model selection
+description: Inspect available models, persist a profile default, and override it per request or environment.
+audience: human
+sidebar:
+  order: 5
+  label: Model selection
+---
+
+Emoera CLI supports every language model currently exposed by the server. Persist a default per profile or select a model for one request.
+
+## Inspect available models
+
+```bash
+emoera model list
+```
+
+The list includes the model identifier, display name, provider, availability, and quota multiplier. `*` in the `SELECTED` column marks the effective model.
+
+<Aside type="note" title="The server owns the model catalog">Models can change with platform configuration, so this guide does not hard-code a list that would become stale. Treat `emoera model list` as the source of truth.</Aside>
+
+## Persist a profile default
+
+```bash
+emoera model use "Qwen3 8B"
+emoera model current
+```
+
+Both model identifiers and display names are accepted. The CLI validates availability and stores the canonical identifier in the active profile.
+
+Each profile can use a different default:
+
+```bash
+emoera config use production
+emoera model use "Qwen3 8B"
+
+emoera config use research
+emoera model use "DeepSeek R1 Qwen3 8B"
+```
+
+## Override one request
+
+```bash
+emoera ask "Provide a deeper risk analysis" --model "DeepSeek R1 Qwen3 8B"
+```
+
+`--model` does not modify the profile.
+
+## Environment variable and precedence
+
+For CI, containers, and temporary shells:
+
+```bash
+export EMOERA_MODEL="siliconflow-qwen3-8b"
+emoera ask "Summarize the knowledge base" --json
+```
+
+Selection precedence is:
+
+1. `emoera ask --model`
+2. `EMOERA_MODEL`
+3. the active profile default
+4. the server default
+
+## Reset to the server default
+
+```bash
+emoera model reset
+emoera model current
+```
+
+If `EMOERA_MODEL` remains set, it continues to override the profile until the environment variable is unset.
+
+<Aside type="tip" title="Quota multipliers">Models can consume AI chat quota at different multipliers. Check `emoera model list` before automating workloads and use `emoera quota show` to inspect remaining quota.</Aside>

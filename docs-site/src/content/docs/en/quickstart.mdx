@@ -29,6 +29,16 @@ emoera whoami
 emoera capabilities
 ```
   </Step>
+  <Step title="Choose a default model">
+
+```bash
+emoera model list
+emoera model use "Qwen3 8B"
+emoera model current
+```
+
+This step is optional. Without a selection, the server default is used.
+  </Step>
   <Step title="Ask your knowledge base">
 
 ```bash
@@ -38,3 +48,5 @@ emoera ask "Summarize the main content in my knowledge base"
 </Steps>
 
 For a self-hosted service, run `emoera config set endpoint https://your-rag.example.com`.
+
+Continue with <DocLink href="/en/models">model selection</DocLink> or the <DocLink href="/en/commands">command reference</DocLink>.

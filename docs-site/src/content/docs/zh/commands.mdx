@@ -20,7 +20,7 @@ sidebar:
 | `search` | 可解释混合检索 | `emoera search "部署规范" --explain` |
 | `ask` | 流式 RAG 问答 | `emoera ask "有哪些风险？"` |
 | `chat` | 会话与运行管理 | `emoera chat sessions` |
-| `model` | 查看模型与倍率 | `emoera model list` |
+| `model` | 查看、选择和重置模型 | `emoera model use "Qwen3 8B"` |
 | `quota` | 查看用量配额 | `emoera quota show` |
 | `status` | 查看业务状态 | `emoera status` |
 
@@ -44,6 +44,18 @@ emoera chat messages <session-uuid>
 emoera ask "继续分析第二点" --session <session-uuid>
 emoera chat cancel <request-id>
 ```
+
+## 模型管理
+
+```bash
+emoera model list
+emoera model current
+emoera model use "Qwen3 8B"
+emoera model reset
+emoera ask "深入分析风险" --model "DeepSeek R1 Qwen3 8B"
+```
+
+`--model` 只影响当前一次问答；`model use` 会保存当前 Profile 的默认模型。完整优先级和环境变量用法请查看 <DocLink href="/zh/models">模型选择</DocLink>。
 
 ## 全局参数
 

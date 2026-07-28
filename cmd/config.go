@@ -76,6 +76,7 @@ func newConfigCommand(app *application) *cobra.Command {
 				items = append(items, map[string]any{
 					"name": name, "current": name == file.CurrentProfile,
 					"endpoint": profile.Endpoint, "defaultOutput": profile.DefaultOutput,
+					"defaultModel": profile.DefaultModel,
 				})
 			}
 			mode := app.output

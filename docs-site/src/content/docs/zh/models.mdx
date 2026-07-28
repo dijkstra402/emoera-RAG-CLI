@@ -1,0 +1,74 @@
+---
+title: 模型选择
+description: 查看可用模型，为 Profile 设置默认模型，并在单次问答或自动化环境中覆盖选择。
+audience: human
+sidebar:
+  order: 5
+  label: 模型选择
+---
+
+Emoera CLI 支持服务端开放的全部语言模型。你可以保存一个 Profile 默认模型，也可以只为某次问答临时指定模型。
+
+## 查看可用模型
+
+```bash
+emoera model list
+```
+
+列表包含模型标识、显示名称、提供方、可用状态和配额倍率。`SELECTED` 列中的 `*` 表示当前生效模型。
+
+<Aside type="note" title="模型列表来自服务端">模型会随平台配置动态变化，文档不会维护一份容易过期的固定名单。请始终以 `emoera model list` 的结果为准。</Aside>
+
+## 保存默认模型
+
+```bash
+emoera model use "Qwen3 8B"
+emoera model current
+```
+
+模型标识或显示名称均可使用。CLI 会先检查模型存在且当前可用，再把规范化模型标识保存到当前 Profile。
+
+不同 Profile 可以使用不同默认模型：
+
+```bash
+emoera config use production
+emoera model use "Qwen3 8B"
+
+emoera config use research
+emoera model use "DeepSeek R1 Qwen3 8B"
+```
+
+## 只覆盖一次问答
+
+```bash
+emoera ask "给出更深入的推理过程" --model "DeepSeek R1 Qwen3 8B"
+```
+
+`--model` 不会修改 Profile。下次不传该参数时，CLI 会继续使用已保存的默认模型。
+
+## 环境变量与优先级
+
+CI、容器或临时终端可以使用：
+
+```bash
+export EMOERA_MODEL="siliconflow-qwen3-8b"
+emoera ask "总结知识库" --json
+```
+
+最终优先级从高到低为：
+
+1. `emoera ask --model`
+2. `EMOERA_MODEL`
+3. 当前 Profile 的默认模型
+4. 服务端默认模型
+
+## 恢复服务端默认模型
+
+```bash
+emoera model reset
+emoera model current
+```
+
+如果终端中仍设置了 `EMOERA_MODEL`，环境变量会继续生效；需要同时取消该变量才能恢复服务端默认值。
+
+<Aside type="tip" title="注意配额倍率">不同模型可能按不同倍率消耗 AI 对话配额。自动化任务上线前，请先通过 `emoera model list` 检查倍率，并通过 `emoera quota show` 查看剩余配额。</Aside>

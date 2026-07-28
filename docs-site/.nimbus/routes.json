@@ -9,6 +9,7 @@
     "/en/automation",
     "/en/commands",
     "/en/install",
+    "/en/models",
     "/en/quickstart",
     "/en/release-security",
     "/en/troubleshooting",
@@ -17,6 +18,7 @@
     "/zh/automation",
     "/zh/commands",
     "/zh/install",
+    "/zh/models",
     "/zh/quickstart",
     "/zh/release-security",
     "/zh/troubleshooting"

@@ -21,6 +21,7 @@ const (
 type Profile struct {
 	Endpoint      string `json:"endpoint,omitempty"`
 	DefaultOutput string `json:"defaultOutput,omitempty"`
+	DefaultModel  string `json:"defaultModel,omitempty"`
 }
 
 type File struct {
@@ -37,13 +38,15 @@ type Overrides struct {
 }
 
 type Runtime struct {
-	Profile     string
-	Endpoint    string
-	Token       string
-	TokenSource string
-	Output      string
-	Timeout     time.Duration
-	ConfigPath  string
+	Profile      string
+	Endpoint     string
+	Token        string
+	TokenSource  string
+	Output       string
+	DefaultModel string
+	ModelSource  string
+	Timeout      time.Duration
+	ConfigPath   string
 }
 
 func Path() (string, error) {
@@ -111,6 +114,15 @@ func Resolve(file File, path string, overrides Overrides, keychainToken string) 
 	if output != "table" && output != "json" && output != "jsonl" {
 		return Runtime{}, apperr.New(apperr.ExitConfiguration, "输出格式只能是 table、json 或 jsonl")
 	}
+	defaultModel := strings.TrimSpace(profile.DefaultModel)
+	modelSource := "profile"
+	if environmentModel := strings.TrimSpace(os.Getenv("EMOERA_MODEL")); environmentModel != "" {
+		defaultModel = environmentModel
+		modelSource = "environment"
+	}
+	if defaultModel == "" {
+		modelSource = "server"
+	}
 	timeout := overrides.Timeout
 	if timeout <= 0 {
 		timeout = 30 * time.Second
@@ -139,7 +151,8 @@ func Resolve(file File, path string, overrides Overrides, keychainToken string) 
 
 	return Runtime{
 		Profile: profileName, Endpoint: endpoint, Token: token,
-		TokenSource: tokenSource, Output: output, Timeout: timeout, ConfigPath: path,
+		TokenSource: tokenSource, Output: output, DefaultModel: defaultModel,
+		ModelSource: modelSource, Timeout: timeout, ConfigPath: path,
 	}, nil
 }
 
@@ -160,8 +173,14 @@ func Set(file *File, profileName, key, value string) error {
 			return apperr.New(apperr.ExitArguments, "default-output 只能是 table、json 或 jsonl")
 		}
 		profile.DefaultOutput = value
+	case "default-model", "defaultmodel", "model":
+		value = strings.TrimSpace(value)
+		if len([]rune(value)) > 100 {
+			return apperr.New(apperr.ExitArguments, "default-model 最多 100 个字符")
+		}
+		profile.DefaultModel = value
 	default:
-		return apperr.New(apperr.ExitArguments, "仅支持 endpoint 和 default-output")
+		return apperr.New(apperr.ExitArguments, "仅支持 endpoint、default-output 和 default-model")
 	}
 	file.Profiles[profileName] = profile
 	return nil

@@ -7,6 +7,7 @@ import (
 
 	"github.com/dijkstra402/emoera-RAG-CLI/internal/api"
 	"github.com/dijkstra402/emoera-RAG-CLI/internal/apperr"
+	"github.com/dijkstra402/emoera-RAG-CLI/internal/config"
 	"github.com/dijkstra402/emoera-RAG-CLI/internal/output"
 	"github.com/spf13/cobra"
 )
@@ -165,7 +166,7 @@ func newChatCancelCommand(app *application) *cobra.Command {
 }
 
 func newModelCommand(app *application) *cobra.Command {
-	root := &cobra.Command{Use: "model", Short: "查看可用模型与倍率"}
+	root := &cobra.Command{Use: "model", Short: "查看模型并管理当前 Profile 的默认模型"}
 	var jsonOutput bool
 	list := &cobra.Command{
 		Use: "list", Short: "列出可用模型", Args: noArgs,
@@ -189,17 +190,170 @@ func newModelCommand(app *application) *cobra.Command {
 			if outputMode(runtime.Output, jsonOutput) != "table" {
 				return output.Write(command.OutOrStdout(), outputMode(runtime.Output, jsonOutput), items)
 			}
-			fmt.Fprintln(command.OutOrStdout(), "NAME\tAVAILABLE\tMULTIPLIER\tPROVIDER\tDISPLAY_NAME")
+			effectiveName := effectiveModelName(items, runtime.DefaultModel)
+			fmt.Fprintln(command.OutOrStdout(), "SELECTED\tNAME\tAVAILABLE\tMULTIPLIER\tPROVIDER\tDISPLAY_NAME")
 			for _, item := range items {
-				fmt.Fprintf(command.OutOrStdout(), "%s\t%t\t%.2fx\t%s\t%s\n",
-					item.Name, item.Available, item.Multiplier, item.Provider, sanitizeTableCell(item.DisplayName))
+				selected := ""
+				if strings.EqualFold(item.Name, effectiveName) {
+					selected = "*"
+				}
+				fmt.Fprintf(command.OutOrStdout(), "%s\t%s\t%t\t%.2fx\t%s\t%s\n",
+					selected, item.Name, item.Available, item.Multiplier, item.Provider, sanitizeTableCell(item.DisplayName))
 			}
 			return nil
 		},
 	}
 	list.Flags().BoolVar(&jsonOutput, "json", false, "输出 JSON")
 	root.AddCommand(list)
+	root.AddCommand(newModelCurrentCommand(app))
+	root.AddCommand(newModelUseCommand(app))
+	root.AddCommand(newModelResetCommand(app))
 	return root
+}
+
+func newModelCurrentCommand(app *application) *cobra.Command {
+	var jsonOutput bool
+	command := &cobra.Command{
+		Use: "current", Short: "显示当前问答默认使用的模型", Args: noArgs,
+		RunE: func(command *cobra.Command, _ []string) error {
+			client, runtime, err := app.client()
+			if err != nil {
+				return err
+			}
+			items, err := client.ListModels(commandContext(command), app.requestID)
+			if err != nil {
+				return err
+			}
+			name := effectiveModelName(items, runtime.DefaultModel)
+			model, found := findModel(items, name)
+			result := map[string]any{
+				"name":      name,
+				"source":    runtime.ModelSource,
+				"available": found && model.Available,
+			}
+			if found {
+				result["displayName"] = model.DisplayName
+				result["provider"] = model.Provider
+				result["multiplier"] = model.Multiplier
+			}
+			if outputMode(runtime.Output, jsonOutput) != "table" {
+				return output.Write(command.OutOrStdout(), outputMode(runtime.Output, jsonOutput), result)
+			}
+			fmt.Fprintf(command.OutOrStdout(), "当前模型：%s\n", name)
+			fmt.Fprintf(command.OutOrStdout(), "配置来源：%s\n", modelSourceLabel(runtime.ModelSource))
+			if found {
+				fmt.Fprintf(command.OutOrStdout(), "显示名称：%s\n", model.DisplayName)
+				fmt.Fprintf(command.OutOrStdout(), "提供方：%s · 倍率：%.2fx · 可用：%t\n", model.Provider, model.Multiplier, model.Available)
+			}
+			return nil
+		},
+	}
+	command.Flags().BoolVar(&jsonOutput, "json", false, "输出 JSON")
+	return command
+}
+
+func newModelUseCommand(app *application) *cobra.Command {
+	return &cobra.Command{
+		Use: "use <model>", Short: "设置当前 Profile 的默认模型", Args: exactArgs(1),
+		RunE: func(command *cobra.Command, args []string) error {
+			client, runtime, err := app.client()
+			if err != nil {
+				return err
+			}
+			items, err := client.ListModels(commandContext(command), app.requestID)
+			if err != nil {
+				return err
+			}
+			model, found := findModel(items, args[0])
+			if !found {
+				return apperr.New(apperr.ExitArguments, fmt.Sprintf("模型 %q 不存在，请运行 emoera model list 查看可用模型", args[0]))
+			}
+			if !model.Available {
+				return apperr.New(apperr.ExitArguments, fmt.Sprintf("模型 %q 当前不可用", model.Name))
+			}
+			path, file, err := app.loadFile()
+			if err != nil {
+				return err
+			}
+			if err := config.Set(&file, runtime.Profile, "default-model", model.Name); err != nil {
+				return err
+			}
+			if err := config.Save(path, file); err != nil {
+				return err
+			}
+			successMessage(command, "Profile %s 的默认模型已设置为 %s", runtime.Profile, model.Name)
+			return nil
+		},
+	}
+}
+
+func newModelResetCommand(app *application) *cobra.Command {
+	return &cobra.Command{
+		Use: "reset", Short: "清除 Profile 默认模型并恢复服务端默认值", Args: noArgs,
+		RunE: func(command *cobra.Command, _ []string) error {
+			runtime, err := app.runtime()
+			if err != nil {
+				return err
+			}
+			path, file, err := app.loadFile()
+			if err != nil {
+				return err
+			}
+			if err := config.Set(&file, runtime.Profile, "default-model", ""); err != nil {
+				return err
+			}
+			if err := config.Save(path, file); err != nil {
+				return err
+			}
+			if runtime.ModelSource == "environment" {
+				successMessage(command, "已清除 Profile %s 的默认模型；环境变量 EMOERA_MODEL=%s 仍然生效", runtime.Profile, runtime.DefaultModel)
+				return nil
+			}
+			successMessage(command, "已恢复 Profile %s 的服务端默认模型", runtime.Profile)
+			return nil
+		},
+	}
+}
+
+func findModel(items []api.Model, value string) (api.Model, bool) {
+	value = strings.TrimSpace(value)
+	for _, item := range items {
+		if strings.EqualFold(item.Name, value) || strings.EqualFold(item.DisplayName, value) {
+			return item, true
+		}
+	}
+	return api.Model{}, false
+}
+
+func effectiveModelName(items []api.Model, configured string) string {
+	if configured = strings.TrimSpace(configured); configured != "" {
+		if model, found := findModel(items, configured); found {
+			return model.Name
+		}
+		return configured
+	}
+	for _, item := range items {
+		if item.Available && item.Default {
+			return item.Name
+		}
+	}
+	for _, item := range items {
+		if item.Available {
+			return item.Name
+		}
+	}
+	return ""
+}
+
+func modelSourceLabel(source string) string {
+	switch source {
+	case "environment":
+		return "环境变量 EMOERA_MODEL"
+	case "profile":
+		return "当前 Profile"
+	default:
+		return "服务端默认值"
+	}
 }
 
 func newQuotaCommand(app *application) *cobra.Command {

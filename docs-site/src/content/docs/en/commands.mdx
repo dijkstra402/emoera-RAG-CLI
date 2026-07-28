@@ -18,8 +18,20 @@ sidebar:
 | `search` | Run explainable hybrid search | `emoera search "deployment" --explain` |
 | `ask` | Run streaming RAG chat | `emoera ask "What are the risks?"` |
 | `chat` | Inspect sessions and runs | `emoera chat sessions` |
-| `model` | List models and multipliers | `emoera model list` |
+| `model` | List, select, or reset models | `emoera model use "Qwen3 8B"` |
 | `quota` | Inspect current quota | `emoera quota show` |
 | `status` | Inspect business status | `emoera status` |
 
 Use `emoera <command> --help` for all flags. Common global flags include `--profile`, `--endpoint`, `--output`, `--timeout`, `--request-id`, `--quiet`, `--no-color`, and `--debug`.
+
+## Model management
+
+```bash
+emoera model list
+emoera model current
+emoera model use "Qwen3 8B"
+emoera model reset
+emoera ask "Analyze the risks in depth" --model "DeepSeek R1 Qwen3 8B"
+```
+
+`--model` overrides one request. `model use` persists the default model in the current profile. See <DocLink href="/en/models">model selection</DocLink> for precedence and environment-variable usage.
