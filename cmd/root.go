@@ -86,6 +86,9 @@ func newRootCommand(store auth.Store) *cobra.Command {
 	root.AddCommand(newModelCommand(app))
 	root.AddCommand(newQuotaCommand(app))
 	root.AddCommand(newStatusCommand(app))
+	root.AddCommand(newPromptCommand(app))
+	root.AddCommand(newCrawlCommand(app))
+	root.AddCommand(newUsageCommand(app))
 	return root
 }
 

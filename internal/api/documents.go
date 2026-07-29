@@ -45,6 +45,13 @@ type DocumentListOptions struct {
 	Status     string
 }
 
+type DocumentUpdateRequest struct {
+	OrgTag      *string   `json:"orgTag,omitempty"`
+	Public      *bool     `json:"isPublic,omitempty"`
+	Description *string   `json:"description,omitempty"`
+	Keywords    *[]string `json:"keywords,omitempty"`
+}
+
 type UploadStatus struct {
 	FileMD5        string  `json:"fileMd5"`
 	FileName       string  `json:"fileName"`
@@ -111,6 +118,25 @@ func (c *Client) GetDocument(ctx context.Context, requestID, fileMD5 string) (Do
 	var result Document
 	err := c.Get(ctx, "/documents/"+url.PathEscape(fileMD5), requestID, &result)
 	return result, err
+}
+
+func (c *Client) UpdateDocument(ctx context.Context, requestID, fileMD5 string, body DocumentUpdateRequest) (Document, error) {
+	var result Document
+	err := c.Do(ctx, http.MethodPatch, "/documents/"+url.PathEscape(fileMD5), requestID, body, &result)
+	return result, err
+}
+
+func (c *Client) DeleteDocument(ctx context.Context, requestID, fileMD5, idempotencyKey string) error {
+	return c.DoContent(
+		ctx,
+		http.MethodDelete,
+		"/documents/"+url.PathEscape(fileMD5),
+		requestID,
+		"",
+		map[string]string{"Idempotency-Key": idempotencyKey},
+		nil,
+		nil,
+	)
 }
 
 func (c *Client) GetUploadStatus(ctx context.Context, requestID, fileMD5 string) (UploadStatus, error) {

@@ -1,9 +1,14 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/dijkstra402/emoera-RAG-CLI/internal/api"
 	"github.com/dijkstra402/emoera-RAG-CLI/internal/apperr"
@@ -18,9 +23,162 @@ func newChatCommand(app *application) *cobra.Command {
 	command := &cobra.Command{Use: "chat", Short: "查询会话、消息和问答运行状态"}
 	command.AddCommand(newChatSessionsCommand(app))
 	command.AddCommand(newChatMessagesCommand(app))
+	command.AddCommand(newChatExportCommand(app))
 	command.AddCommand(newChatRunCommand(app))
 	command.AddCommand(newChatCancelCommand(app))
 	return command
+}
+
+type chatExport struct {
+	SessionUUID string            `json:"sessionUuid"`
+	ExportedAt  string            `json:"exportedAt"`
+	Messages    []api.ChatMessage `json:"messages"`
+}
+
+func newChatExportCommand(app *application) *cobra.Command {
+	var exportFormat string
+	var destination string
+	var force bool
+	command := &cobra.Command{
+		Use: "export <session-uuid>", Short: "将完整会话导出为 Markdown 或 JSON", Args: exactArgs(1),
+		RunE: func(command *cobra.Command, args []string) error {
+			sessionUUID := args[0]
+			if !sessionUUIDPattern.MatchString(sessionUUID) {
+				return apperr.New(apperr.ExitArguments, "session UUID 格式无效")
+			}
+			exportFormat = strings.ToLower(strings.TrimSpace(exportFormat))
+			if exportFormat != "markdown" && exportFormat != "json" {
+				return apperr.New(apperr.ExitArguments, "导出格式只支持 markdown 或 json")
+			}
+			client, _, err := app.client()
+			if err != nil {
+				return err
+			}
+			messages, err := collectChatMessages(command, client, app.requestID, sessionUUID)
+			if err != nil {
+				return err
+			}
+			result := chatExport{
+				SessionUUID: sessionUUID,
+				ExportedAt:  time.Now().Format(time.RFC3339),
+				Messages:    messages,
+			}
+			content, err := encodeChatExport(result, exportFormat)
+			if err != nil {
+				return apperr.Wrap(apperr.ExitServer, "无法生成会话导出内容", err)
+			}
+			if destination == "" {
+				extension := ".md"
+				if exportFormat == "json" {
+					extension = ".json"
+				}
+				destination = sessionUUID + extension
+			}
+			if destination == "-" {
+				_, err = command.OutOrStdout().Write(content)
+				return err
+			}
+			if err := writeExportFile(destination, content, force); err != nil {
+				return err
+			}
+			successMessage(command, "已导出 %d 条消息到 %s", len(messages), destination)
+			return nil
+		},
+	}
+	command.Flags().StringVar(&exportFormat, "format", "markdown", "导出格式：markdown 或 json")
+	command.Flags().StringVarP(&destination, "output-file", "f", "", "输出文件；使用 - 写入标准输出")
+	command.Flags().BoolVar(&force, "force", false, "覆盖已存在的文件")
+	return command
+}
+
+func collectChatMessages(command *cobra.Command, client *api.Client, requestID, sessionUUID string) ([]api.ChatMessage, error) {
+	messages := make([]api.ChatMessage, 0, 100)
+	cursor := ""
+	for {
+		page, err := client.ListChatMessages(commandContext(command), requestID, sessionUUID, cursor, 100)
+		if err != nil {
+			return nil, err
+		}
+		messages = append(messages, page.Items...)
+		if !page.HasMore || page.NextCursor == nil || strings.TrimSpace(*page.NextCursor) == "" {
+			break
+		}
+		next := strings.TrimSpace(*page.NextCursor)
+		if next == cursor {
+			return nil, apperr.New(apperr.ExitServer, "服务返回了重复的会话游标")
+		}
+		cursor = next
+	}
+	return messages, nil
+}
+
+func encodeChatExport(result chatExport, exportFormat string) ([]byte, error) {
+	if exportFormat == "json" {
+		content, err := json.MarshalIndent(result, "", "  ")
+		return append(content, '\n'), err
+	}
+	var builder strings.Builder
+	fmt.Fprintf(&builder, "# Emoera 对话导出\n\n- 会话：`%s`\n- 导出时间：%s\n- 消息数：%d\n\n---\n\n",
+		result.SessionUUID, result.ExportedAt, len(result.Messages))
+	for _, message := range result.Messages {
+		role := "AI 助手"
+		if strings.EqualFold(message.Role, "user") {
+			role = "用户"
+		} else if strings.TrimSpace(message.Role) != "" && !strings.EqualFold(message.Role, "assistant") {
+			role = message.Role
+		}
+		fmt.Fprintf(&builder, "## %s\n\n%s\n\n", role, strings.TrimSpace(message.Content))
+		if len(message.References) > 0 {
+			builder.WriteString("### 引用\n\n")
+			for index, reference := range message.References {
+				name := firstReferenceValue(reference, "fileName", "filename", "title", "fileMd5")
+				if name == "" {
+					name = fmt.Sprintf("引用 %d", index+1)
+				}
+				fmt.Fprintf(&builder, "- %s\n", name)
+			}
+			builder.WriteString("\n")
+		}
+		builder.WriteString("---\n\n")
+	}
+	return []byte(builder.String()), nil
+}
+
+func firstReferenceValue(reference map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if value := strings.TrimSpace(fmt.Sprint(reference[key])); value != "" && value != "<nil>" {
+			return value
+		}
+	}
+	return ""
+}
+
+func writeExportFile(destination string, content []byte, force bool) error {
+	if strings.TrimSpace(destination) == "" {
+		return apperr.New(apperr.ExitArguments, "输出文件不能为空")
+	}
+	if !force {
+		if _, err := os.Stat(destination); err == nil {
+			return apperr.New(apperr.ExitConflict, "输出文件已存在；使用 --force 覆盖")
+		} else if !os.IsNotExist(err) {
+			return apperr.Wrap(apperr.ExitConfiguration, "无法检查输出文件", err)
+		}
+	}
+	parent := filepath.Dir(destination)
+	if parent != "." {
+		if err := os.MkdirAll(parent, 0o755); err != nil {
+			return apperr.Wrap(apperr.ExitConfiguration, "无法创建输出目录", err)
+		}
+	}
+	file, err := os.OpenFile(destination, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
+	if err != nil {
+		return apperr.Wrap(apperr.ExitConfiguration, "无法创建导出文件", err)
+	}
+	defer file.Close()
+	if _, err := io.Copy(file, strings.NewReader(string(content))); err != nil {
+		return apperr.Wrap(apperr.ExitConfiguration, "无法写入导出文件", err)
+	}
+	return nil
 }
 
 func newChatSessionsCommand(app *application) *cobra.Command {

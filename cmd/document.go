@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -13,13 +14,127 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var documentMD5Pattern = regexp.MustCompile(`^[a-fA-F0-9]{32}$`)
+
 func newDocumentCommand(app *application) *cobra.Command {
 	command := &cobra.Command{Use: "doc", Aliases: []string{"document"}, Short: "管理知识库文档"}
 	command.AddCommand(newDocumentListCommand(app))
 	command.AddCommand(newDocumentShowCommand(app))
 	command.AddCommand(newDocumentStatusCommand(app))
 	command.AddCommand(newDocumentUploadCommand(app))
+	command.AddCommand(newDocumentUpdateCommand(app))
+	command.AddCommand(newDocumentDeleteCommand(app))
 	return command
+}
+
+func newDocumentUpdateCommand(app *application) *cobra.Command {
+	var orgTag, description, keywords string
+	var makePublic, makePrivate, jsonOutput bool
+	command := &cobra.Command{
+		Use: "update <file-md5>", Short: "修改文档组织、可见性和元数据", Args: exactArgs(1),
+		RunE: func(command *cobra.Command, args []string) error {
+			if !documentMD5Pattern.MatchString(args[0]) {
+				return apperr.New(apperr.ExitArguments, "文件 MD5 格式无效")
+			}
+			if makePublic && makePrivate {
+				return apperr.New(apperr.ExitArguments, "--public 与 --private 不能同时使用")
+			}
+			flags := command.Flags()
+			body := api.DocumentUpdateRequest{}
+			changed := false
+			if flags.Changed("org-tag") {
+				body.OrgTag = &orgTag
+				changed = true
+			}
+			if flags.Changed("description") {
+				body.Description = &description
+				changed = true
+			}
+			if flags.Changed("keywords") {
+				items := splitCommaValues(keywords)
+				body.Keywords = &items
+				changed = true
+			}
+			if makePublic || makePrivate {
+				value := makePublic
+				body.Public = &value
+				changed = true
+			}
+			if !changed {
+				return apperr.New(apperr.ExitArguments, "至少指定一个需要修改的字段")
+			}
+			client, runtime, err := app.client()
+			if err != nil {
+				return err
+			}
+			document, err := client.UpdateDocument(commandContext(command), app.requestID, args[0], body)
+			if err != nil {
+				return err
+			}
+			if app.quiet {
+				fmt.Fprintln(command.OutOrStdout(), document.FileMD5)
+				return nil
+			}
+			return output.Write(command.OutOrStdout(), outputMode(runtime.Output, jsonOutput), document)
+		},
+	}
+	flags := command.Flags()
+	flags.StringVar(&orgTag, "org-tag", "", "新的组织标签")
+	flags.StringVar(&description, "description", "", "新的文档描述；空字符串可清除")
+	flags.StringVar(&keywords, "keywords", "", "逗号分隔关键词；空字符串可清除")
+	flags.BoolVar(&makePublic, "public", false, "设为公开文档")
+	flags.BoolVar(&makePrivate, "private", false, "设为私有文档")
+	flags.BoolVar(&jsonOutput, "json", false, "输出 JSON")
+	return command
+}
+
+func newDocumentDeleteCommand(app *application) *cobra.Command {
+	var yes bool
+	var idempotencyKey string
+	command := &cobra.Command{
+		Use: "delete <file-md5>", Short: "删除文档、对象文件和检索索引", Args: exactArgs(1),
+		RunE: func(command *cobra.Command, args []string) error {
+			if !documentMD5Pattern.MatchString(args[0]) {
+				return apperr.New(apperr.ExitArguments, "文件 MD5 格式无效")
+			}
+			if !yes {
+				return apperr.New(apperr.ExitArguments, "删除不可撤销，请确认后增加 --yes")
+			}
+			if strings.TrimSpace(idempotencyKey) == "" {
+				generated, err := newCLIRequestID("doc-delete")
+				if err != nil {
+					return err
+				}
+				idempotencyKey = generated
+			}
+			client, _, err := app.client()
+			if err != nil {
+				return err
+			}
+			if err := client.DeleteDocument(commandContext(command), app.requestID, args[0], idempotencyKey); err != nil {
+				return err
+			}
+			if app.quiet {
+				fmt.Fprintln(command.OutOrStdout(), args[0])
+				return nil
+			}
+			successMessage(command, "文档 %s 已删除", args[0])
+			return nil
+		},
+	}
+	command.Flags().BoolVar(&yes, "yes", false, "确认执行不可撤销的删除")
+	command.Flags().StringVar(&idempotencyKey, "idempotency-key", "", "自定义幂等键")
+	return command
+}
+
+func splitCommaValues(value string) []string {
+	items := make([]string, 0)
+	for _, item := range strings.Split(value, ",") {
+		if normalized := strings.TrimSpace(item); normalized != "" {
+			items = append(items, normalized)
+		}
+	}
+	return items
 }
 
 func newDocumentListCommand(app *application) *cobra.Command {

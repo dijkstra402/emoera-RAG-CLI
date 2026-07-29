@@ -17,12 +17,74 @@ sidebar:
 | `doc` | Upload and inspect documents | `emoera doc upload ./manual.pdf` |
 | `search` | Run explainable hybrid search | `emoera search "deployment" --explain` |
 | `ask` | Run streaming RAG chat | `emoera ask "What are the risks?"` |
-| `chat` | Inspect sessions and runs | `emoera chat sessions` |
+| `chat` | Inspect sessions, runs, and exports | `emoera chat sessions` |
 | `model` | List, select, or reset models | `emoera model use "Qwen3 8B"` |
+| `prompt` | Manage prompt templates | `emoera prompt list` |
+| `crawl` | Crawl a web page into the KB | `emoera crawl https://example.com` |
+| `usage` | AI call and token analytics | `emoera usage overview` |
 | `quota` | Inspect current quota | `emoera quota show` |
 | `status` | Inspect business status | `emoera status` |
 
 Use `emoera <command> --help` for all flags. Common global flags include `--profile`, `--endpoint`, `--output`, `--timeout`, `--request-id`, `--quiet`, `--no-color`, and `--debug`.
+
+## Documents and search
+
+```bash
+emoera doc list
+emoera doc upload ./manual.pdf
+emoera doc show <file-md5>
+emoera doc status <file-md5>
+emoera doc update <file-md5> --description "Rollout spec v2" --keywords "deploy,rollback" --public
+emoera doc delete <file-md5> --yes
+emoera search "monitoring architecture" --top-k 10 --min-score 0.3 --explain
+```
+
+`doc update` only touches the fields you pass explicitly (`--org-tag`, `--description`, `--keywords`, `--public`/`--private`). `doc delete` is irreversible and requires `--yes`; pass `--idempotency-key` to make retries idempotent.
+
+## Chat and sessions
+
+```bash
+emoera ask "Compare both proposals" --model "Qwen3 8B" \
+  --file <file-md5-1> --file <file-md5-2> --suggestions
+emoera chat sessions
+emoera chat messages <session-uuid>
+emoera chat export <session-uuid> --format markdown --output-file session.md
+emoera chat cancel <request-id>
+```
+
+`chat export` pages through the full session and supports `--format markdown|json`. Use `--output-file -` to stream to stdout and `--force` to overwrite an existing file.
+
+## Prompt templates
+
+```bash
+emoera prompt list
+emoera prompt show <id>
+emoera prompt create --name "Ops triage" --content-file ./ops.md --scope user
+emoera prompt update <id> --content "New template body" --enabled
+emoera prompt default <id>
+emoera prompt delete <id> --yes
+```
+
+Provide the body with either `--content` or `--content-file`. `--scope` is `user` or `global`; `prompt default` marks a template as the active default.
+
+## Web crawling
+
+```bash
+emoera crawl https://example.com/guide --org-tag ops --public
+```
+
+Accepts public http/https URLs only, ingests the page into the knowledge base, and returns the file MD5. Defaults to the primary organization and private visibility.
+
+## Usage analytics
+
+```bash
+emoera usage overview --days 30
+emoera usage tokens --days 30
+emoera usage heatmap
+emoera usage calls --days 7 --success false --channel CLI --page 1 --size 20
+```
+
+`overview` reports calls, error rate, and token totals; `tokens` breaks usage down by model, channel, and day; `heatmap` renders a year-long call heatmap; `calls` paginates the raw log with `--endpoint`, `--model`, `--channel`, and `--success` filters. `--days` ranges from 1 to 365.
 
 ## Model management
 

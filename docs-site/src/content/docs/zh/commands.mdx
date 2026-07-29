@@ -19,8 +19,11 @@ sidebar:
 | `doc` | 文档上传与查询 | `emoera doc upload ./manual.pdf` |
 | `search` | 可解释混合检索 | `emoera search "部署规范" --explain` |
 | `ask` | 流式 RAG 问答 | `emoera ask "有哪些风险？"` |
-| `chat` | 会话与运行管理 | `emoera chat sessions` |
+| `chat` | 会话、运行与导出 | `emoera chat sessions` |
 | `model` | 查看、选择和重置模型 | `emoera model use "Qwen3 8B"` |
+| `prompt` | 管理 Prompt 模板 | `emoera prompt list` |
+| `crawl` | 抓取网页写入知识库 | `emoera crawl https://example.com` |
+| `usage` | AI 调用与 Token 统计 | `emoera usage overview` |
 | `quota` | 查看用量配额 | `emoera quota show` |
 | `status` | 查看业务状态 | `emoera status` |
 
@@ -31,8 +34,12 @@ emoera doc list
 emoera doc upload ./manual.pdf
 emoera doc show <file-md5>
 emoera doc status <file-md5>
+emoera doc update <file-md5> --description "上线规范 v2" --keywords "部署,回滚" --public
+emoera doc delete <file-md5> --yes
 emoera search "设备监控架构" --top-k 10 --min-score 0.3 --explain
 ```
+
+`doc update` 只更新显式传入的字段（`--org-tag`、`--description`、`--keywords`、`--public`/`--private`）；`doc delete` 不可撤销，必须加 `--yes`，可选 `--idempotency-key` 保证重试幂等。
 
 ## 问答与会话
 
@@ -42,8 +49,43 @@ emoera ask "比较两份方案" --model "Qwen3 8B" \
 emoera chat sessions
 emoera chat messages <session-uuid>
 emoera ask "继续分析第二点" --session <session-uuid>
+emoera chat export <session-uuid> --format markdown --output-file 会话.md
 emoera chat cancel <request-id>
 ```
+
+`chat export` 会翻页拉取整段会话，支持 `--format markdown|json`；`--output-file -` 写入标准输出，加 `--force` 覆盖已有文件。
+
+## Prompt 模板
+
+```bash
+emoera prompt list
+emoera prompt show <id>
+emoera prompt create --name "运维排障" --content-file ./ops.md --scope user
+emoera prompt update <id> --content "新的模板内容" --enabled
+emoera prompt default <id>
+emoera prompt delete <id> --yes
+```
+
+内容通过 `--content` 或 `--content-file` 提供（二选一）；`--scope` 为 `user` 或 `global`；`prompt default` 将模板设为当前默认。
+
+## 网页抓取
+
+```bash
+emoera crawl https://example.com/guide --org-tag ops --public
+```
+
+仅接受 http/https 公开地址，抓取后写入知识库并返回文件 MD5；默认写入主组织、私有可见。
+
+## 用量统计
+
+```bash
+emoera usage overview --days 30
+emoera usage tokens --days 30
+emoera usage heatmap
+emoera usage calls --days 7 --success false --channel CLI --page 1 --size 20
+```
+
+`overview` 给出调用/错误率/Token 概览，`tokens` 按模型、渠道和日期拆分，`heatmap` 渲染近一年调用热力图，`calls` 分页列出明细并支持 `--endpoint`、`--model`、`--channel`、`--success` 过滤。`--days` 取值 1–365。
 
 ## 模型管理
 
